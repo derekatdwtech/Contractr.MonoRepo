@@ -1,0 +1,110 @@
+name: $(GitVersion.AssemblySemVer)
+trigger:
+  branches:
+    include:
+      - master
+      - feature/*
+  
+pool:
+  vmImage: "windows-latest"
+variables:
+  dotnetVersion: '6.x'
+  projects: '*.csproj'
+  artifactName: 'Contractr.Web'
+  serviceConnection: DWTECH
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Build
+        steps: 
+          - checkout: self
+            persistCredentials: true
+            fetchDepth: 0
+
+          - task: gitversion/setup@0
+            displayName: Install GitVersion
+            inputs:
+              versionSpec: '5.x'
+
+          - task: gitversion/execute@0
+            displayName: Determine Version Number
+
+          - task: UseDotNet@2
+            displayName: Install Dotnet
+            inputs:
+              packageType: 'sdk'
+              version: $(dotnetVersion)
+
+          - task: DotNetCoreCLI@2
+            displayName: Restore Packages
+            inputs:
+              command: 'restore'
+              projects: $(projects)
+              noCache: true
+              verbosityRestore: 'quiet'
+
+          - task: DotNetCoreCli@2
+            displayName: Build Project
+            inputs:
+              command: 'build'
+              projects: $(projects)
+              arguments: >
+                --configuration Release
+                --no-restore
+                -p:FileVersion=$(GitVersion.AssemblySemVer)
+                -p:InformationalVersion=$(GitVersion.AssemblySemVer)
+                
+          - task: DotNetCoreCLI@2
+            displayName: Dotnet Publish      
+            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
+            inputs:
+              command: publish
+              projects: $(projects)
+              publishWebProjects: false
+              zipAfterPublish: true
+              arguments: >
+                --configuration Release
+                --no-restore
+                --output $(Build.ArtifactStagingDirectory)
+                -p:FileVersion=$(GitVersion.AssemblySemVer)
+                -p:InformationalVersion=$(GitVersion.AssemblySemVer)
+
+          - task: PublishPipelineArtifact@0
+            displayName: Publish Pipeline Artifact
+            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
+            inputs:
+              artifactName: '$(artifactName)'
+              targetPath: '$(Build.ArtifactStagingDirectory)'
+          
+          - task: ATP.ATP-GitTag.GitTag.GitTag@7
+            displayName: 'Set Git Tag'
+            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
+            inputs:
+              workingdir: '$(Build.SourcesDirectory)'
+              tag: v$(GitVersion.AssemblySemVer)
+              useLightweightTags: true
+              forceTagCreation: true
+
+  - stage: Deploy_Dev
+    displayName: Deploy To Dev
+    dependsOn:
+      - Build
+    jobs:
+    - job: Dev
+      steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifactName: '$(artifactName)'
+            targetPath: $(Build.SourcesDirectory)/bin
+            
+        - task: AzureWebApp@1
+          displayName: Publish To App Service
+          inputs:
+            azureSubscription: $(serviceConnection)
+            appType: 'webApp'
+            appName: ctr-as-ctrapi-use2-dev
+            package: '$(Build.SourcesDirectory)/bin/**/*.zip'
+      
+
+

@@ -1,0 +1,8 @@
+**/obj
+**/bin
+**/.vscode
+**/.dccache
+**/signature_pages/
+**/appsettings.*
+**/*.settings.json
+**/Properties

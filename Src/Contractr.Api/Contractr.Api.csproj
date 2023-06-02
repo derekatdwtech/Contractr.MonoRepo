@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+        <RootNamespace>Contractr.Api</RootNamespace>
+        <AssemblyName>Contractr.Api.Web</AssemblyName>
+        <Version>1.0.0.0</Version>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <InformationalVersion>1.0.0.0</InformationalVersion>
+        <Company>DWTechnologies</Company>
+        <Authors>Derek Williams</Authors>
+        <Product>Contractr</Product>
+        <Title>Contractr Api</Title>
+        <Description></Description>
+        <Copyright>Copyright © $([System.DateTime]::Now.ToString('yyyy'))</Copyright>
+        <NeutralLanguage></NeutralLanguage>
+        <SignAssembly>false</SignAssembly>
+      <UserSecretsId>dfe28018-19fe-4b1b-ae47-0e0db85be66a</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
+        <PackageReference Include="Azure.Identity" Version="1.8.1" />
+        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.9.0" />
+        <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.4.0" />
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
+        <PackageReference Include="Dapper" Version="2.0.123" />
+        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.7" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
+        <PackageReference Include="nanoid" Version="2.1.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="RestSharp" Version="108.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+        <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Contractr.Entities\Contractr.Entities.csproj" />
+    </ItemGroup>
+
+</Project>
