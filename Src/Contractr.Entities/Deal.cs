@@ -1,9 +1,7 @@
 using System;
 
 namespace Contractr.Entities {
-    public class Deal {
-        private const string NANOID_CHARS = "-ABCDEFGHIJKLMNPQRSTUVWXYZabcedfghijklmnpqrstuvwxyz0123456789";
-        public string id { get; set; } = Nanoid.Nanoid.Generate(size: 16, alphabet: NANOID_CHARS);
+    public class Deal : BaseEntity {
         public string unique_name  {get;set;}
         public string description {get; set;}
         public DateTime start_date {get; set;} = DateTime.Now;

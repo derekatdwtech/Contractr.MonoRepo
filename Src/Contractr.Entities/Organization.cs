@@ -1,10 +1,8 @@
-namespace Contractr.Api.Services
+namespace Contractr.Entities
 {
 
-    public class Organization
+    public class Organization : BaseEntity
     {
-
-        public string id { get; set; } = Nanoid.Nanoid.Generate(size: 16, alphabet: Contractr.Entities.NanoidConstants.NANOID_CHARS);
         public string name { get; set; }
         public string address { get; set; }
         public string city { get; set; }

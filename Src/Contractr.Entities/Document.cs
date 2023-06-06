@@ -4,9 +4,8 @@ namespace Contractr.Entities
 {
     
 
-    public class Document
+    public class Document : BaseEntity
     {
-        public string id { get; set; } = Nanoid.Nanoid.Generate(size: 16, alphabet: Contractr.Entities.NanoidConstants.NANOID_CHARS);
         public string parent_document { get; set; }
 
         public string file_name { get; set; }
@@ -17,9 +16,8 @@ namespace Contractr.Entities
 
     }
 
-    public class GenericDocument
+    public class GenericDocument : BaseEntity
     {
-        public string id { get; set; } = Nanoid.Nanoid.Generate(size: 16, alphabet: Contractr.Entities.NanoidConstants.NANOID_CHARS);
         public string parent_document { get; set; }
         public string file_name {get; set;}
         public string blob_uri { get; set; }
@@ -27,9 +25,8 @@ namespace Contractr.Entities
 
     }
 
-    public class SignaturePages
+    public class SignaturePages : BaseEntity
     {
-        public string id { get; set; }
         public string parent_document { get; set; }
         public string file_name { get; set; }
         public string deal_id { get; set; }

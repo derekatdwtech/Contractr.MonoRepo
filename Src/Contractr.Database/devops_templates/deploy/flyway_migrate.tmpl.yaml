@@ -1,0 +1,42 @@
+parameters:
+- name: serviceConnection
+- name: env
+- name: keyVaultName
+- name: branchFilter
+- name: previousStage
+- name: flyWayVersion
+- name: migrationsDirectory
+- name: enabled
+  type: boolean
+  default: true
+
+
+stages:
+- ${{ if eq(parameters.enabled, true) }}:
+  - stage: Deploy_${{ parameters.env}}
+    displayName: Deploy to ${{ parameters.env }}
+    condition: and(succeeded(), ${{ parameters.enabled }}, contains(variables['Build.SourceBranch'], '${{ parameters.branchFilter }}'))
+    dependsOn: 
+    - Build
+    - ${{ parameters.previousStage }}
+    jobs:
+    - job: ${{ parameters.env }}
+      steps:
+        - checkout: self
+          persistCredentials: true
+
+        - task: AzureKeyVault@2
+          inputs:
+            azureSubscription: ${{ parameters.serviceConnection }} 
+            KeyVaultName: ${{ parameters.keyVaultName }} 
+            SecretsFilter: '*'
+            RunAsPreJob: true 
+
+        - template: ../build/flyway.tmpl.yaml
+          parameters:
+            flyWayVersion: ${{ parameters.flywayVersion }}
+
+        - script: |
+            flyway migrate -user=$(Credentials--DatabaseUser) -password=$(Credentials--DatabasePassword) -url='$(JDBC--CtrDatabaseUrl)' -locations=${{ parameters.migrationsDirectory }} -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
+          displayName: FlyWay Migrate
+            

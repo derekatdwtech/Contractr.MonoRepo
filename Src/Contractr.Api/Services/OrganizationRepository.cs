@@ -1,8 +1,7 @@
 using System;
-using Contractr.Entities.Config;
+using Contractr.Entities;
 using Dapper;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Contractr.Api.Services
 {

@@ -1,0 +1,34 @@
+trigger:
+  branches:
+    include:
+      - master
+      - feature/*
+
+variables:
+  flyWayVersion: '8.0.0'
+  serviceConnection: DWTECH
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Build
+        displayName: Build
+        steps:
+        - template: devops_templates/build/flyway.tmpl.yaml
+          parameters:
+            flyWayVersion: $(flyWayVersion)
+        
+        - template: devops_templates/build/flyway_test_mssql.tmpl.yaml
+          parameters:
+            flyWayVersion: $(flyWayVersion)
+            migrationsDirectory: 'Migrations'
+
+  - template: devops_templates/deploy/flyway_migrate.tmpl.yaml
+    parameters:
+      branchFilter: 'refs/heads/master'
+      env: Dev
+      flyWayVersion: $(flyWayVersion)
+      keyVaultName: 'ctr-kvctr-use2-dev'
+      migrationsDirectory: 'Migrations'
+      previousStage: Build
+      serviceConnection: $(serviceConnection)

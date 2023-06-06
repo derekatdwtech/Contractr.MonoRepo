@@ -1,3 +1,5 @@
+using Contractr.Entities;
+
 namespace Contractr.Api.Services {
     public interface IOrganization {
         Organization AddOrganization(Organization organization);

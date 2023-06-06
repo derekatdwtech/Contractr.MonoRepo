@@ -1,0 +1,9 @@
+parameters:
+- name: flyWayVersion
+  default: '8.0.0'
+
+steps:
+- task: mfilotto.azure-pipelines-tasks-flyway.azure-pipelines-tasks-flyway-installer.FlywayInstaller@0
+  displayName: 'Install Flyway'
+  inputs:
+    flywayVersion: ${{ parameters.flyWayVersion }}
