@@ -17,7 +17,7 @@ CREATE TABLE organization
     country VARCHAR (200) NOT NULL,
     owner VARCHAR(100) NOT NULL,
     zip INT NOT NULL,
-    phone INT NOT NULL, 
+    phone BIGINT NOT NULL, 
     CONSTRAINT fk_organizaion_owner_id FOREIGN KEY (owner) REFERENCES users(id) ON DELETE CASCADE
 );
 

@@ -66,7 +66,7 @@ namespace Contractr.Converter
                         if (!string.IsNullOrEmpty(convertedDocument.Name))
                         {
                             PostStatusMessage(message.id, 2);
-                            GenericDocument convertedDocumentId = await UploadConvertedPDFDocument(container, convertedDocument.FullName, $"{dealId}/{documentId}/{convertedDocument.Name}").ConfigureAwait(false);
+                            BaseDocument convertedDocumentId = await UploadConvertedPDFDocument(container, convertedDocument.FullName, $"{dealId}/{documentId}/{convertedDocument.Name}").ConfigureAwait(false);
 
                             if(!string.IsNullOrEmpty(convertedDocumentId.id)) {
                                 SendDocumentParseMessage(convertedDocumentId);   
@@ -119,7 +119,7 @@ namespace Contractr.Converter
             }
         }
 
-        private void SendDocumentParseMessage(GenericDocument document)
+        private void SendDocumentParseMessage(BaseDocument document)
         {
             
             string body = JsonConvert.SerializeObject(document);
@@ -134,7 +134,7 @@ namespace Contractr.Converter
             }
         }
 
-        private async Task<GenericDocument> UploadConvertedPDFDocument(string container, string sourceFile, string destinationFile)
+        private async Task<BaseDocument> UploadConvertedPDFDocument(string container, string sourceFile, string destinationFile)
         {
             _log.LogInformation($"Uploading converted pdf document {sourceFile}");
 
@@ -143,7 +143,7 @@ namespace Contractr.Converter
                 string blobUri = _blob.UploadFileFromPath(container, sourceFile, destinationFile).Result.Uri.ToString();
                 try
                 {
-                    GenericDocument document = new()
+                    ConvertedDocument document = new()
                     {
                         blob_uri = blobUri,
                         parent_document = destinationFile.Split('/')[1],
@@ -166,7 +166,7 @@ namespace Contractr.Converter
             }
         }
 
-        private int InsertConvertedDocumentSql(GenericDocument document)
+        private int InsertConvertedDocumentSql(ConvertedDocument document)
         {
             SqlHelper _helper = new();
             string sql = "INSERT INTO converted_documents (id, parent_document, deal_id, file_name, blob_uri) VALUES (@id, @parent_document, @deal_id, @file_name, @blob_uri)";

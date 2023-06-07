@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace Contractr.Api.Services {
     public interface IDocument {
-        Task<Document> UploadDocument(IFormFile file, string uploaded_by, string dealId);
-        List<Document> GetDocuments(string deal_id);
+        Task<OriginalDocument> UploadDocument(IFormFile file, string uploaded_by, string dealId);
+        List<OriginalDocument> GetDocuments(string deal_id);
         void DownloadDocument(string deal_id);
         Task<FileInfo> DownloadSignaturePages(string document_id);
         List<SignaturePages> GetSignaturePagesForDocument(string document_id);

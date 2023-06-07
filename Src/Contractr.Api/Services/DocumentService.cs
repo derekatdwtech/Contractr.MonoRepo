@@ -38,19 +38,19 @@ namespace Contractr.Api.Services
             throw new NotImplementedException();
         }
 
-        public List<Document> GetDocuments(string deal_id)
+        public List<OriginalDocument> GetDocuments(string deal_id)
         {
             string sql = "SELECT * FROM original_documents WHERE deal_id = @deal_id";
             DynamicParameters _params = new DynamicParameters();
             _params.Add("@deal_id", deal_id);
 
-            return _db.SelectMany<Document>(sql, _params);
+            return _db.SelectMany<OriginalDocument>(sql, _params);
         }
 
         // The container name parameter is the organization ID. This is how we will organize files.
-        public async Task<Document> UploadDocument(IFormFile file, string uploadedBy, string dealId)
+        public async Task<OriginalDocument> UploadDocument(IFormFile file, string uploadedBy, string dealId)
         {
-            Document document = new()
+            OriginalDocument document = new()
             {
                 file_name = file.FileName,
                 blob_uri = null,
@@ -99,7 +99,7 @@ namespace Contractr.Api.Services
                     catch (Exception exp)
                     {
                         _log.LogError(exp, exp.Message);
-                        return new Document();
+                        return null;
                     }
                     finally
                     {
@@ -114,7 +114,7 @@ namespace Contractr.Api.Services
             catch (Exception e)
             {
                 _log.LogError(e, e.Message);
-                return new Document();
+                return null;
             }
 
 
@@ -205,14 +205,16 @@ namespace Contractr.Api.Services
             return new Uri(Uri.UnescapeDataString(input)).AbsolutePath.TrimStart('/').Split('/');
         }
 
-        private int InsertOrignialDocumentSQL(Document document)
+        private int InsertOrignialDocumentSQL(OriginalDocument document)
         {
             string sql = "INSERT INTO original_documents (id, file_name, blob_uri, uploaded_by, deal_id) VALUES (@id, @file_name, @blob_uri, @uploaded_by, @deal_id);";
             DynamicParameters _params = _helper.GetDynamicParameters(document);
             return _db.Insert(sql, _params);
         }
 
-        private int InsertConvertedDocumentSQL(Document document)
+        // This method is confusing. It's used in case the ser uploads a PDF. BEcause of the similarities between documkent object models,
+        // I have opted to use the orginal document object for this purpose to decrease code rewrite
+        private int InsertConvertedDocumentSQL(OriginalDocument document)
         {
             string sql = "INSERT INTO converted_documents (id, file_name, blob_uri, parent_document, uploaded_by, deal_id) VALUES (@id, @file_name, @blob_uri, @parent_document, @uploaded_by, @deal_id);";
             DynamicParameters _params = _helper.GetDynamicParameters(document);

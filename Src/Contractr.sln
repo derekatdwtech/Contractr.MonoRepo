@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contractr_Status_Update", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contractr.Entities", "Contractr.Entities\Contractr.Entities.csproj", "{3038E380-C806-4CDC-A12F-1BACE41B5958}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contractr.Utilities", "Contractr.Utilities\Contractr.Utilities.csproj", "{53FC99F0-DAC7-42FB-905F-2C72B1D10248}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,5 +54,9 @@ Global
 		{08AB5EA6-0915-4583-B1AA-7727240A0CBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08AB5EA6-0915-4583-B1AA-7727240A0CBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08AB5EA6-0915-4583-B1AA-7727240A0CBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53FC99F0-DAC7-42FB-905F-2C72B1D10248}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53FC99F0-DAC7-42FB-905F-2C72B1D10248}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53FC99F0-DAC7-42FB-905F-2C72B1D10248}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53FC99F0-DAC7-42FB-905F-2C72B1D10248}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
