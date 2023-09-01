@@ -11,7 +11,7 @@ metadata:
   tags:
     - dotnet
   links:
-    - url: https://api-dev.contractr.law
+    - url: https://ctrapi-dev.contractr.law
       title: Admin Dashboard
       icon: dashboard
       type: admin-dashboard
