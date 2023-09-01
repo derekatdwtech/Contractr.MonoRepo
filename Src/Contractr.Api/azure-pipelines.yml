@@ -9,7 +9,7 @@ pool:
   vmImage: "windows-latest"
 variables:
   dotnetVersion: '6.x'
-  projects: '*.csproj'
+  projects: 'Contractr.Api.csproj'
   artifactName: 'Contractr.Web'
   serviceConnection: DWTECH
   workingdir: 'Src/Contractr.Api'
