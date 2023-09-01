@@ -38,8 +38,7 @@ stages:
             displayName: Restore Packages
             inputs:
               command: 'restore'
-              projects: '$(projects)'
-              workingDirectory: '$(workingdir)'
+              projects: '$(workingdir)\$(projects)'
               noCache: true
               verbosityRestore: 'quiet'
 
