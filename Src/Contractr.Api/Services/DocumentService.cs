@@ -40,11 +40,44 @@ namespace Contractr.Api.Services
 
         public List<OriginalDocument> GetDocuments(string deal_id)
         {
-            string sql = "SELECT * FROM original_documents WHERE deal_id = @deal_id";
+            string sql = @"SELECT od.*, covd.*, sd.*, sig.*
+                            FROM original_documents as od LEFT JOIN converted_documents as covd on od.id = covd.parent_document
+                                LEFT JOIN signature_documents as sd on covd.id = sd.parent_document
+                                LEFT JOIN signed_documents as sig on sd.id = sig.parent_document
+                            WHERE od.deal_id = @deal_id order by od.uploaded_on;";
             DynamicParameters _params = new DynamicParameters();
             _params.Add("@deal_id", deal_id);
 
-            return _db.SelectMany<OriginalDocument>(sql, _params);
+            using (var db = _db.GetDbConnection())
+            {
+                return db.Query<OriginalDocument, ConvertedDocument, SignaturePage, SignedDocument, OriginalDocument>(sql, map: (od, covd, sd, sig) =>
+                {
+                    od.convertedDocument = covd;
+                    if (sd != null)
+                    {
+                        od.signaturePages.Add(sd);
+                    }
+
+                    if (sig != null)
+                    {
+                        od.signedDocuments.Add(sig);
+                    }
+                    return od;
+
+                }, _params).GroupBy(od => od.id).Select(group => new OriginalDocument
+                {
+                    id = group.Key,
+                    file_name = group.Select(fn => fn.file_name).FirstOrDefault(),
+                    blob_uri = group.Select(bu => bu.blob_uri).FirstOrDefault(),
+                    uploaded_by = group.Select(obj => obj.uploaded_by).FirstOrDefault(),
+                    uploaded_on = group.Select(up => up.uploaded_on).FirstOrDefault(),
+                    deal_id = group.Select(obj => obj.deal_id).FirstOrDefault(),
+                    signaturePages = group.SelectMany(sd => sd.signaturePages).Distinct().ToList(),
+                    convertedDocument = group.Select(obj => obj.convertedDocument).FirstOrDefault(),
+                    signedDocuments = group.SelectMany(sp => sp.signedDocuments).Distinct().ToList(),
+                }).ToList();
+
+            }
         }
 
         // The container name parameter is the organization ID. This is how we will organize files.
@@ -81,11 +114,11 @@ namespace Contractr.Api.Services
                             {
                                 int resp = InsertConvertedDocumentSQL(document);
                                 document.parent_document = document.id;
-                               await _sb.SendDocumentParseMessage(JsonConvert.SerializeObject(document));
+                                await _sb.SendDocumentParseMessage(JsonConvert.SerializeObject(document));
                             }
                             else
                             {
-                               await _sb.SendDocumentConversionMessage(JsonConvert.SerializeObject(document));
+                                await _sb.SendDocumentConversionMessage(JsonConvert.SerializeObject(document));
 
                             }
                             // Send Status message of upload
@@ -139,7 +172,7 @@ namespace Contractr.Api.Services
 
         public async Task<FileInfo> DownloadSignaturePages(string document_id)
         {
-            List<SignaturePages> pages = GetSignaturePagesForDocument(document_id);
+            List<SignaturePage> pages = GetSignaturePagesForDocument(document_id);
             if (pages.Count > 0)
             {
                 if (!Directory.Exists(document_id))
@@ -157,7 +190,7 @@ namespace Contractr.Api.Services
                     }
                     if (!String.IsNullOrEmpty(orgId))
                     {
-                        foreach (SignaturePages s in pages)
+                        foreach (SignaturePage s in pages)
                         {
                             string[] parts = GetUriSegments(s.blob_uri);
                             string remoteFilePath = string.Join("/", parts.Skip(1).ToArray());
@@ -192,12 +225,12 @@ namespace Contractr.Api.Services
             }
         }
 
-        public List<SignaturePages> GetSignaturePagesForDocument(string document_id)
+        public List<SignaturePage> GetSignaturePagesForDocument(string document_id)
         {
             string sql = "SELECT * FROM signature_documents where parent_document = (select cd.id from converted_documents as cd where cd.parent_document = @id);";
             DynamicParameters _params = new DynamicParameters();
             _params.Add("@id", document_id);
-            List<SignaturePages> pages = _db.SelectMany<SignaturePages>(sql, _params).ToList<SignaturePages>();
+            List<SignaturePage> pages = _db.SelectMany<SignaturePage>(sql, _params).ToList<SignaturePage>();
             return pages;
         }
         private string[] GetUriSegments(string input)

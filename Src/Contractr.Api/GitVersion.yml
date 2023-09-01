@@ -1,0 +1,6 @@
+mode: ContinuousDelivery
+increment: Patch
+assembly-informational-format: '{SemVer}'
+branches: {}
+ignore:
+  sha: []

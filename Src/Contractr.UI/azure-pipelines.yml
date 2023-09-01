@@ -1,0 +1,104 @@
+name: $(GitVersion.AssemblySemVer)
+
+trigger:
+  branches:
+    include:
+      - master
+      - feature/*
+
+variables:
+  artifactName: 'Contractr.Ui'
+  nodeVersion: '16.x'
+  serviceConnection: DWTECH
+
+pool:
+  vmImage: 'windows-latest'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Build
+        displayName: Build
+        steps:
+        - checkout: self
+          persistCredentials: true
+          fetchDepth: 0
+
+        - task: gitversion/setup@0
+          displayName: Install GitVersion
+          inputs:
+            versionSpec: '5.x'
+
+        - task: gitversion/execute@0
+          displayName: Determine Version Number
+
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: '$(nodeVersion)'
+          
+        - script: |
+            npm ci
+          displayName: 'NPM Install'
+        
+        - script: |
+            npm run test:ci
+          displayName: Run Unit Tests
+          continueOnError: true
+
+        - script: |
+            npm run build
+          displayName: Build React App
+          
+        - task: CopyFiles@2
+          displayName: Copy files to artifact directory
+          inputs:
+            sourceFolder: './build' 
+            Contents: '**/*'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)'
+            cleanTargetFolder: true
+
+        - task: ArchiveFiles@2
+          displayName: Zip Package
+          inputs:
+            rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+            includeRootFolder: false
+            archiveType: zip
+            archiveFile: $(Build.ArtifactStagingDirectory)/$(artifactName).zip
+            replaceExistingArchive: true
+        
+        - task: PublishPipelineArtifact@0
+          displayName: Publish Pipeline Artifact
+          condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
+          inputs:
+            artifactName: '$(artifactName).zip'
+            targetPath: '$(Build.ArtifactStagingDirectory)'
+          
+          
+        - task: ATP.ATP-GitTag.GitTag.GitTag@7
+          displayName: 'Set Git Tag'
+          condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
+          inputs:
+            workingdir: '$(Build.SourcesDirectory)'
+            tag: v$(GitVersion.AssemblySemVer)
+            useLightweightTags: true
+            forceTagCreation: true
+
+  - stage: Deploy_Dev
+    displayName: Deploy to Dev
+    jobs:
+      - job: Dev
+        steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifactName: '$(artifactName).zip'
+              targetPath: $(Build.SourcesDirectory)/bin
+
+          - task: AzureWebApp@1
+            displayName: Publish To App Service
+            inputs:
+              azureSubscription: $(serviceConnection)
+              appType: 'webApp'
+              appName: ctr-as-ctrui-use2-dev
+              package: '$(Build.SourcesDirectory)/bin/**/*.zip'
+        

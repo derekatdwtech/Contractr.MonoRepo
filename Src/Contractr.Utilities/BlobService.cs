@@ -88,6 +88,41 @@ namespace Contractr.Utilities
             }
         }
 
+        public async Task DownloadAsync(string container, string blobFilename, string outputDirectory)
+        {
+            // Get a reference to a container named in appsettings.json
+            BlobContainerClient client = await GetContainerClient(container);
+
+            try
+            {
+                // Get a reference to the blob uploaded earlier from the API in the container from configuration settings
+                BlobClient file = client.GetBlobClient(blobFilename);
+
+                // Check if the file exists in the container
+                if (await file.ExistsAsync())
+                {
+                    Console.WriteLine($" ....... Downloading file {file.Name}");
+                    var data = await file.OpenReadAsync();
+                    Stream blobContent = data;
+
+                    using (var fileStream = File.OpenWrite($"{outputDirectory}/{blobFilename.Split('/')[2]}"))
+                    {
+                        // Download the file details async
+                        var content = await file.DownloadToAsync(fileStream);
+                    }
+                }
+            }
+            catch (RequestFailedException ex)
+                when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+            {
+                // Log error to console
+                Console.WriteLine($" ....... File {blobFilename} was not found.");
+            }
+            // File does not exist, return null and handle that in requesting method
+            return;
+        }
+
+
         private async Task<BlobContainerClient> GetContainerClient(string containerName)
         {
             BlobServiceClient _client = GetBlobClient();

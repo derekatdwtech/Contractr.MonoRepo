@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: Contractr.Api
+  description: API for Contractr
+  labels:
+    example.com/custom: custom_label_value
+  annotations:
+   dev.azure.com/project: Contractr
+   dev.azure.com/build-definition: Contractr.Api
+  tags:
+    - dotnet
+  links:
+    - url: https://api-dev.contractr.law
+      title: Admin Dashboard
+      icon: dashboard
+      type: admin-dashboard
+spec:
+  type: api
+  lifecycle: production
+  owner: derekatdwtech
+  system: contractr

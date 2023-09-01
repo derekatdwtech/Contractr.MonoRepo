@@ -12,3 +12,5 @@ seed-database:
 
 migrate-database: 
 	$(MAKE) -C ./Contractr.Database migrate-local
+
+clean-database: drop-database new-database migrate-database seed-database

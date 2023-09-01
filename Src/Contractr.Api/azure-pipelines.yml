@@ -12,6 +12,7 @@ variables:
   projects: '*.csproj'
   artifactName: 'Contractr.Web'
   serviceConnection: DWTECH
+  workingdir: 'Contractr.Api'
 
 stages:
   - stage: Build
@@ -26,9 +27,12 @@ stages:
             displayName: Install GitVersion
             inputs:
               versionSpec: '5.x'
+              
 
           - task: gitversion/execute@0
             displayName: Determine Version Number
+            inputs:
+              configFilePath: $(workingdir)/GitVersion.yml
 
           - task: UseDotNet@2
             displayName: Install Dotnet
@@ -41,14 +45,16 @@ stages:
             inputs:
               command: 'restore'
               projects: $(projects)
+              workingDirectory: $(workingdir)
               noCache: true
               verbosityRestore: 'quiet'
 
-          - task: DotNetCoreCli@2
+          - task: DotNetCoreCLI@2
             displayName: Build Project
             inputs:
               command: 'build'
               projects: $(projects)
+              workingDirectory: $(workingdir)
               arguments: >
                 --configuration Release
                 --no-restore
@@ -63,6 +69,7 @@ stages:
               projects: $(projects)
               publishWebProjects: false
               zipAfterPublish: true
+              workingDirectory: $(workingdir)
               arguments: >
                 --configuration Release
                 --no-restore

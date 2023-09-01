@@ -1,0 +1,7 @@
+window._env_ = {
+  GENERATE_SOURCEMAP: "false",
+  API_URL: "http://localhost:5000/api/v1",
+  AUTH0_CLIENT_ID: "xaN6tuUP51J0VQvrY24oNxgDke4mKpYB",
+  AUTH0_DOMAIN: "contractr.us.auth0.com",
+  AUTH0_AUDIENCE: "contractr.dev",
+}

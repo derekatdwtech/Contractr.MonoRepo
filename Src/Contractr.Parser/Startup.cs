@@ -28,7 +28,7 @@ namespace Contractr.Parser
                 x.NotificationQueueSend = config.GetConnectionString("NotificationQueueSend");
             });
 
-            
+
             builder.Services.AddScoped<IBlobStorage, BlobStorage>();
             builder.Services.AddScoped<IDatabaseProvider, DatabaseProvider>();
             builder.Services.AddScoped<IDocumentParser, DocumentParser>();

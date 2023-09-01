@@ -45,4 +45,7 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Contractr.Entities\Contractr.Entities.csproj" />
+  </ItemGroup>
 </Project>

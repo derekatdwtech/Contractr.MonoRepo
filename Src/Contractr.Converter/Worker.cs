@@ -150,12 +150,13 @@ namespace Contractr.Converter
                         deal_id = destinationFile.Split('/')[0],
                         file_name = new FileInfo(sourceFile).Name
                     };
+                    
                     InsertConvertedDocumentSql(document);
                     return document;
                 }
                 catch (Exception e)
                 {
-                    _log.LogError($"Failed to insert converted document to database. Error: {e.Message}");
+                    _log.LogError($"Failed to insert converted document to database. Error: {e}");
                     return null;
                 }
             }
@@ -169,6 +170,7 @@ namespace Contractr.Converter
         private int InsertConvertedDocumentSql(ConvertedDocument document)
         {
             SqlHelper _helper = new();
+            _log.LogInformation($"Inserting {JsonConvert.SerializeObject(document)}");
             string sql = "INSERT INTO converted_documents (id, parent_document, deal_id, file_name, blob_uri) VALUES (@id, @parent_document, @deal_id, @file_name, @blob_uri)";
             DynamicParameters _params = _helper.GetDynamicParameters(document);
 

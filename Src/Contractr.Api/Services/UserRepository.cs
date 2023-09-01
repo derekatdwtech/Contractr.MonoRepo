@@ -1,9 +1,6 @@
 using Contractr.Entities;
-using Contractr.Entities.Config;
 using Dapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Contractr.Api.Services
 {

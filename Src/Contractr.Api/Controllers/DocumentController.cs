@@ -31,18 +31,12 @@ public class DocumentController : ControllerBase
         try
         {
             var result = _service.GetDocuments(deal_id);
-            if (result.Count > 0)
-            {
-                return Ok(result);
-            }
-            else
-            {
-                return NoContent();
-            }
+            return Ok(result);
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            _logger.LogError(e.StackTrace);
+            return BadRequest(e.ToProblemDetails());
         }
     }
 
@@ -78,7 +72,7 @@ public class DocumentController : ControllerBase
     {
         try
         {
-            List<SignaturePages> pages = _service.GetSignaturePagesForDocument(id);
+            List<SignaturePage> pages = _service.GetSignaturePagesForDocument(id);
             if (pages.Count > 0)
             {
                 return Ok(pages);
@@ -102,7 +96,7 @@ public class DocumentController : ControllerBase
         try
         {
             FileInfo file = await _service.DownloadSignaturePages(id);
-            var fileBytes =await System.IO.File.ReadAllBytesAsync(file.Name);
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(file.Name);
             return File(fileBytes, "application/octet-stream", file.Name);
         }
         catch (Exception e)

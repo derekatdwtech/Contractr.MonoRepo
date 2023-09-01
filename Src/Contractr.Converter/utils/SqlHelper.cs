@@ -94,10 +94,10 @@ namespace Contractr.Converter.Services
             {
                 if (p.Name != "PageSize" && p.Name != "PageNumber" && !String.IsNullOrWhiteSpace(p.Name))
                 {
-                    // Console.WriteLine($" ....... Processing Dynamic Parameters for key {p.Name.ToString()}");
+                    Console.WriteLine($" ....... Processing Dynamic Parameters for key {p.Name.ToString()}");
                     var value = p.GetValue(obj);
                     param.Add($"@{p.Name}", value.ToString());
-                    // Console.WriteLine($" ....... Successfully wrote Dynamic Parameters with value of {value.ToString()}");
+                    Console.WriteLine($" ....... Successfully wrote Dynamic Parameters {p.Name} : {value.ToString()}");
                 }
 
             }

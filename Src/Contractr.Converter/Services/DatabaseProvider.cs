@@ -17,7 +17,6 @@ namespace Contractr.Converter.Services
             _connStr = _config.GetConnectionString("ContractrDatabase");
         }
 
-
         public DbConnection GetDbConnection()
         {
             return new SqlConnection(_connStr);

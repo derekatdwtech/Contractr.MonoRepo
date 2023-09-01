@@ -6,3 +6,6 @@
 **/appsettings.*
 **/*.settings.json
 **/Properties
+__blobstorage__
+__queuestorage__
+*azurite*

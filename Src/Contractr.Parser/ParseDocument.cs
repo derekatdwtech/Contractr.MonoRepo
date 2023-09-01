@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Contractr.Parser.Models;
+using Contractr.Entities;
 using Contractr.Parser.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -28,7 +28,7 @@ namespace Contractr.Parser
             _log.LogInformation($"Received message: {message}");
 
             // Deserialize object.
-            GenericDocument document = JsonConvert.DeserializeObject<GenericDocument>(message) ?? throw new System.Exception($"Failed to convert string to object for parsing. Please ensure the message is formed properly and try again. {message}");
+            ConvertedDocument document = JsonConvert.DeserializeObject<ConvertedDocument>(message) ?? throw new System.Exception($"Failed to convert string to object for parsing. Please ensure the message is formed properly and try again. {message}");
 
             if (!String.IsNullOrEmpty(document.blob_uri))
             {
@@ -64,23 +64,23 @@ namespace Contractr.Parser
                         foreach (var page in pages)
                         {
                             var blob = await _blob.UploadFileFromPath(container, page.FullName, $"{dealId}/{document.id}/signature_pages/{page.Name}");
-                            GenericDocument gDoc = new GenericDocument()
+                            SignaturePage sDoc = new SignaturePage()
                             {
                                 parent_document = document.id,
                                 file_name = page.Name,
                                 blob_uri = blob.Uri.ToString(),
                                 deal_id = dealId
                             };
-                            _log.LogDebug($"Attempting to insert {JsonConvert.SerializeObject(gDoc)}");
+                            _log.LogDebug($"Attempting to insert {JsonConvert.SerializeObject(sDoc)}");
 
-                            var rows = _parser.InsertSignaturePagesSql(gDoc);
+                            var rows = _parser.InsertSignaturePagesSql(sDoc);
                             if (rows > 0)
                             {
-                                _log.LogInformation($"Successfully inserted document with id {gDoc.id}");
+                                _log.LogInformation($"Successfully inserted document with id {sDoc.id}");
                             }
                             else
                             {
-                                _log.LogError($"Failed to insert document. Attempted to insert {JsonConvert.SerializeObject(gDoc)}");
+                                _log.LogError($"Failed to insert document. Attempted to insert {JsonConvert.SerializeObject(sDoc)}");
                             }
                         }
                     }

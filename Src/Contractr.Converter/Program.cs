@@ -64,15 +64,16 @@ namespace Contractr.Converter
                 }
                 config.AddEnvironmentVariables();
                 config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-        
+
 
             })
             .ConfigureServices((hostContext, service) =>
             {
-                service.AddLogging(configure => {
+                service.AddLogging(configure =>
+                {
                     configure.ClearProviders();
                     configure.AddConsole();
-                    });
+                });
                 service.AddApplicationInsightsTelemetryWorkerService();
                 service.Configure<DatabaseConfiguration>(x =>
                 {

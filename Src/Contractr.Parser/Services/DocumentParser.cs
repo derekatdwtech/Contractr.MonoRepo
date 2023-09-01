@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
+using Contractr.Entities;
 using Contractr.Parser.Models;
 using Dapper;
 using Microsoft.Extensions.Logging;
@@ -17,7 +19,7 @@ namespace Contractr.Parser.Services
         private IBlobStorage _blob;
         private IDatabaseProvider _db;
         private ILogger<DocumentParser> _log;
-        public DocumentParser(IDatabaseProvider db, IBlobStorage blob,  ILogger<DocumentParser> log)
+        public DocumentParser(IDatabaseProvider db, IBlobStorage blob, ILogger<DocumentParser> log)
         {
             _db = db;
             _blob = blob;
@@ -42,7 +44,7 @@ namespace Contractr.Parser.Services
 
         private List<FileInfo> FindAndCreateSignaturePages(string filePath, string outputDirectory)
         {
-            List<string> searchKeys = new SignatureKeys().SearchKeys;
+            List<SearchKey> searchKeys = new SignatureKeys().SearchKeys;
             // load pdf and identify signature page
             List<int> listSignaturePages = new();
             // List Of Files to return
@@ -68,26 +70,43 @@ namespace Contractr.Parser.Services
                     {
                         foreach (var signatureKey in searchKeys)
                         {
-                            if (pdfWord.Text.Contains(signatureKey))
+                            if (pdfWord.Text.Contains(signatureKey.key))
                             {
-                                var wordCoords = pdfWord.BoundingBox;
-                                if (!coordSets.Contains(wordCoords))
+                                if (signatureKey.isSignature)
                                 {
-                                    coordSets.Add(wordCoords);
+                                    var wordCoords = pdfWord.BoundingBox;
+                                    if (!coordSets.Contains(wordCoords))
+                                    {
+                                        coordSets.Add(wordCoords);
+                                    }
+
+                                    if (!listSignaturePages.Contains(pageIdx))
+                                    {
+                                        _log.LogInformation($"Signature marker found on page: {pageIdx}. Processing...");
+                                        listSignaturePages.Add(pageIdx);
+                                        PdfDocumentBuilder pdfBuilder = new PdfDocumentBuilder();
+                                        PdfPageBuilder pdfPage = pdfBuilder.AddPage(pageSize);
+                                        pdfPage.CopyFrom(page);
+                                        byte[] pdfBytes = pdfBuilder.Build();
+
+                                        File.WriteAllBytes($"{outputDirectory}/{modifiedFileName}", pdfBytes);
+                                        _log.LogInformation($"File Saved: {outputDirectory}/{modifiedFileName}");
+                                    }
                                 }
-
-                                if (!listSignaturePages.Contains(pageIdx))
+                                else if (signatureKey.isNameField)
                                 {
-                                    _log.LogInformation($"Signature marker found on page: {pageIdx}. Processing...");
-                                    listSignaturePages.Add(pageIdx);
-                                    PdfDocumentBuilder pdfBuilder = new PdfDocumentBuilder();
-                                    PdfPageBuilder pdfPage = pdfBuilder.AddPage(pageSize);
+                                    var potentialName = page.Text;
+                                    _log.LogDebug($"Parsing Text -------------- {potentialName}");
+                                    var regexStr = $"(?<= {signatureKey.key}\\s)\\b([A-Z]{{1}}[a-z]+) ([A-Z]{{1}}[a-z]+)\\b";
+                                    _log.LogDebug($"Matching with regex pattern: {regexStr}");
 
-                                    pdfPage.CopyFrom(page);
-                                    byte[] pdfBytes = pdfBuilder.Build();
-
-                                    File.WriteAllBytes($"{outputDirectory}/{modifiedFileName}", pdfBytes);
-                                    _log.LogInformation($"File Saved: {outputDirectory}/{modifiedFileName}");
+                                    Regex re = new Regex(regexStr);
+                                    MatchCollection names = re.Matches(potentialName);
+                                    
+                                    _log.LogInformation($"Found {names.Count} names. in text {potentialName}");
+                                    foreach(Match name in names) {
+                                        _log.LogInformation($"{name.Value}");
+                                    }
                                 }
                             }
                         }
@@ -124,15 +143,17 @@ namespace Contractr.Parser.Services
             return signaturePages;
         }
 
-        public int InsertSignaturePagesSql(GenericDocument document)
+        public int InsertSignaturePagesSql(SignaturePage document)
         {
-            try {
-            SqlHelper _helper = new();
-            string sql = "INSERT INTO signature_documents (id, parent_document, deal_id, file_name, blob_uri) VALUES (@id, @parent_document, @deal_id, @file_name, @blob_uri)";
-            DynamicParameters _params = _helper.GetDynamicParameters(document);
-            return _db.Insert(sql, _params);
+            try
+            {
+                SqlHelper _helper = new();
+                string sql = "INSERT INTO signature_documents (id, parent_document, deal_id, file_name, blob_uri) VALUES (@id, @parent_document, @deal_id, @file_name, @blob_uri)";
+                DynamicParameters _params = _helper.GetDynamicParameters(document);
+                return _db.Insert(sql, _params);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 _log.LogError(e.Message, e);
                 return -1;
             }
