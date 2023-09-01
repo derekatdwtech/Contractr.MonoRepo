@@ -12,7 +12,7 @@ variables:
   projects: 'Contractr.Api.csproj'
   artifactName: 'Contractr.Web'
   serviceConnection: DWTECH
-  workingdir: 'Src/Contractr.Api'
+  workingdir: 'Src\Contractr.Api'
 
 stages:
   - stage: Build
