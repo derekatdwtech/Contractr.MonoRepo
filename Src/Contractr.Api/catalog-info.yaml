@@ -6,8 +6,7 @@ metadata:
   labels:
     example.com/custom: custom_label_value
   annotations:
-   dev.azure.com/project: Contractr
-   dev.azure.com/build-definition: Contractr.Api
+    jenkins.io/job-full-name: Contractr.Api
   tags:
     - dotnet
   links:
