@@ -17,6 +17,6 @@ metadata:
       type: admin-dashboard
 spec:
   type: api
-  lifecycle: production
+  lifecycle: alpha
   owner: derekatdwtech
   system: contractr
