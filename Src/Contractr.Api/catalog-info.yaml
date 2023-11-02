@@ -8,7 +8,8 @@ metadata:
   annotations:
     jenkins.io/job-full-name: Contractr.Api
   tags:
-    - dotnet
+    - language:dotnet
+    - system:contractr
   links:
     - url: https://ctrapi-dev.contractr.law
       title: Admin Dashboard
