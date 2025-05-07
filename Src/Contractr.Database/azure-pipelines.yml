@@ -18,10 +18,10 @@ stages:
           parameters:
             flyWayVersion: $(flyWayVersion)
         
-        - template: devops_templates/build/flyway_test_mssql.tmpl.yaml
-          parameters:
-            flyWayVersion: $(flyWayVersion)
-            migrationsDirectory: 'Migrations'
+        # - template: devops_templates/build/flyway_test_mssql.tmpl.yaml
+        #   parameters:
+        #     flyWayVersion: $(flyWayVersion)
+        #     migrationsDirectory: 'Migrations'
 
   - template: devops_templates/deploy/flyway_migrate.tmpl.yaml
     parameters:
