@@ -9,7 +9,7 @@ namespace Contractr.Entities
         public string state { get; set; }
         public string country { get; set; }
         public int zip { get; set; }
-        public int phone { get; set; }
+        public string phone { get; set; }
         public string owner { get; set; } = "";
     }
 }

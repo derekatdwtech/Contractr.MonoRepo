@@ -12,14 +12,13 @@ import {
 import { Box, styled } from "@mui/system";
 import FlexBox from "../../components/flexbox/FlexBox";
 import useModal from "../../components/modal/usemodal";
-import { OrganizationContext } from "../../context/OrganizationContext";
 import { useFetch } from "../../hooks/useFetch";
 import { config } from "../../config";
 import { H2 } from "../../components/Typography";
 import SearchInput from "../../components/input/search/SearchInput";
 import ProjectCard from "../../components/cards/ProjectCard";
 import CreateProject from "../../components/modal/CreateProject";
-
+import { useUserOrg } from "../../context/UserOrgContext";
 const DealsPage = () => {
   const [value, setValue] = useState("0");
   const downSM = useMediaQuery((theme) => theme.breakpoints.down("sm"));
@@ -36,7 +35,7 @@ const DealsPage = () => {
     setOpenModal(!openModal);
   };
 
-  const { organization } = useContext(OrganizationContext);
+  const { organization } = useUserOrg();
   const { get } = useFetch();
 
   useEffect(() => {

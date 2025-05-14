@@ -5,39 +5,44 @@ import Scrollbar from "../../../components/ScrollBar";
 import { useState } from "react";
 import ArrowLeftToLine from "../../../icons/duotone/ArrowLeftToLine";
 import MultiLevelMenu from "./MultiLevelMenu";
-import MobileSidebar from "./MobileSidebar";
+import LayoutDrawer from "../../../components/layout/LayoutDrawer";
+
 const TOP_HEADER_AREA = 70;
-const SidebarWrapper = styled(Box)(({ theme, compact }) => ({
+
+const SidebarWrapper = styled(Box)(({ theme, compact, isMobile }) => ({
   height: "100vh",
-  position: "fixed",
+  position: isMobile ? "relative" : "fixed",
   width: compact ? 86 : 280,
   transition: "all .2s ease",
   zIndex: theme.zIndex.drawer,
   backgroundColor: theme.palette.background.paper,
-  "&:hover": compact && {
+  "&:hover": compact && !isMobile && {
     width: 280,
   },
 }));
+
 const NavWrapper = styled(Box)(() => ({
   paddingLeft: 16,
   paddingRight: 16,
   height: "100%",
 }));
+
 const StyledLogo = styled(Box)(() => ({
   paddingLeft: 8,
   fontWeight: 700,
   fontSize: 20,
 }));
+
 const StyledArrow = styled(ArrowLeftToLine)(() => ({
   display: "block",
 }));
+
 const StyledIconButton = styled(IconButton)(({ theme }) => ({
   "&:hover": {
     backgroundColor: theme.palette.action.hover,
   },
-})); // -----------------------------------------------------------------------------
+}));
 
-// -----------------------------------------------------------------------------
 const DashboardSidebar = (props) => {
   const {
     sidebarCompact,
@@ -45,47 +50,32 @@ const DashboardSidebar = (props) => {
     setShowMobileSideBar,
     setSidebarCompact,
   } = props;
+  
   const [onHover, setOnHover] = useState(false);
-  const downLg = useMediaQuery((theme) => theme.breakpoints.down("lg")); // Activate compact when toggle button clicked and not on hover state
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("lg"));
+  const COMPACT = sidebarCompact && !onHover ? 1 : 0;
 
-  const COMPACT = sidebarCompact && !onHover ? 1 : 0; //   IF MOBILE
-
-  if (downLg) {
-    return (
-      <MobileSidebar
-        sidebarCompact={!!COMPACT}
-        showMobileSideBar={!!showMobileSideBar}
-        setShowMobileSideBar={setShowMobileSideBar}
-      />
-    );
-  }
-
-  return (
-    <SidebarWrapper
-      compact={sidebarCompact}
-      onMouseEnter={() => setOnHover(true)}
-      onMouseLeave={() => sidebarCompact && setOnHover(false)}
-    >
+  const SidebarContent = () => (
+    <>
       <FlexBetween pt={3} pr={2} pl={4} pb={1} height={TOP_HEADER_AREA}>
-        {/* LOGO */}
         <FlexBox>
           <img src="/static/logo/logo.svg" alt="logo" width={18} />
           {!COMPACT && <StyledLogo>Contractr</StyledLogo>}
         </FlexBox>
         <Box mx={"auto"}></Box>
 
-        {/* SIDEBAR COLLAPSE BUTTON */}
-        <StyledIconButton
-          onClick={setSidebarCompact}
-          sx={{
-            display: COMPACT ? "none" : "block",
-          }}
-        >
-          <StyledArrow />
-        </StyledIconButton>
+        {!isMobile && (
+          <StyledIconButton
+            onClick={setSidebarCompact}
+            sx={{
+              display: COMPACT ? "none" : "block",
+            }}
+          >
+            <StyledArrow />
+          </StyledIconButton>
+        )}
       </FlexBetween>
 
-      {/* NAVIGATION ITEMS */}
       <Scrollbar
         autoHide
         clickOnTrack={false}
@@ -98,6 +88,25 @@ const DashboardSidebar = (props) => {
           <MultiLevelMenu sidebarCompact={!!COMPACT} />
         </NavWrapper>
       </Scrollbar>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <LayoutDrawer open={showMobileSideBar} onClose={setShowMobileSideBar}>
+        <SidebarContent />
+      </LayoutDrawer>
+    );
+  }
+
+  return (
+    <SidebarWrapper
+      compact={sidebarCompact}
+      isMobile={isMobile}
+      onMouseEnter={() => setOnHover(true)}
+      onMouseLeave={() => sidebarCompact && setOnHover(false)}
+    >
+      <SidebarContent />
     </SidebarWrapper>
   );
 };

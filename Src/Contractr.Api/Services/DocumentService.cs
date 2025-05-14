@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -183,28 +183,48 @@ namespace Contractr.Api.Services
                 try
                 {
                     string orgId = GetOrganizationIdFromDealId(pages[0].deal_id);
-                    if (File.Exists($"{orgId.ToLower()}_{document_id}.zip"))
+                    
+                    // Get the parent document filename
+                    string parentDocId = pages[0].parent_document;
+                    string parentFileName = GetParentDocumentFileName(parentDocId);
+                    
+                    // Create a safe filename by removing invalid characters
+                    string safeFileName = string.Join("_", parentFileName.Split(Path.GetInvalidFileNameChars()));
+                    
+                    // Use the parent filename in the zip filename
+                    string zipFileName = $"{orgId.ToLower()}_{safeFileName}.zip";
+                    
+                    if (File.Exists(zipFileName))
                     {
                         _log.LogInformation("Cleaning up previous zip files");
-                        File.Delete($"{orgId.ToLower()}_{document_id}.zip");
+                        File.Delete(zipFileName);
                     }
+                    
                     if (!String.IsNullOrEmpty(orgId))
                     {
                         foreach (SignaturePage s in pages)
                         {
-                            string[] parts = GetUriSegments(s.blob_uri);
+                            string decodedBlobUri = Uri.UnescapeDataString(s.blob_uri);
+                            _log.LogInformation($"Decoded blob URI: {decodedBlobUri}");
+                            string[] parts = GetUriSegments(decodedBlobUri);
                             string remoteFilePath = string.Join("/", parts.Skip(1).ToArray());
                             _log.LogInformation($"Downloading from remote file path {remoteFilePath}");
-                            await _blob.DownloadBlob(orgId.ToLower(), remoteFilePath, $"{document_id}/{parts.Last()}");
+                            await _blob.DownloadBlob(orgId.ToLower(), Uri.UnescapeDataString(remoteFilePath), $"{document_id}/{Uri.UnescapeDataString(parts.Last())}");
                         }
                     }
                     try
                     {
                         _log.LogInformation("Compressing archive");
-
-                        ZipFile.CreateFromDirectory(document_id, $"{orgId.ToLower()}{document_id.ToLower()}.zip");
+                        
+                        // Delete if exists
+                        if (File.Exists(zipFileName))
+                        {
+                            File.Delete(zipFileName);
+                        }
+                        
+                        ZipFile.CreateFromDirectory(document_id, zipFileName);
                         new DirectoryInfo(document_id).Delete(true);
-                        return new FileInfo($"{orgId.ToLower()}{document_id.ToLower()}.zip");
+                        return new FileInfo(zipFileName);
                     }
                     catch (Exception ex)
                     {
@@ -235,7 +255,7 @@ namespace Contractr.Api.Services
         }
         private string[] GetUriSegments(string input)
         {
-            return new Uri(Uri.UnescapeDataString(input)).AbsolutePath.TrimStart('/').Split('/');
+            return new Uri(input).AbsolutePath.TrimStart('/').Split('/');
         }
 
         private int InsertOrignialDocumentSQL(OriginalDocument document)
@@ -252,6 +272,40 @@ namespace Contractr.Api.Services
             string sql = "INSERT INTO converted_documents (id, file_name, blob_uri, parent_document, uploaded_by, deal_id) VALUES (@id, @file_name, @blob_uri, @parent_document, @uploaded_by, @deal_id);";
             DynamicParameters _params = _helper.GetDynamicParameters(document);
             return _db.Insert(sql, _params);
+        }
+
+        // Add this method to get the parent document's filename
+        private string GetParentDocumentFileName(string parentDocumentId)
+        {
+            try
+            {
+                _log.LogInformation($"Getting filename for parent document: {parentDocumentId}");
+                string sql = "SELECT file_name FROM converted_documents WHERE id = @id";
+                _log.LogInformation($"SQL: {sql}");
+                
+                _log.LogInformation("Creating parameters");
+                var parameters = _helper.GetDynamicParameters(new { id = parentDocumentId });
+                _log.LogInformation("Parameters created");
+                
+                _log.LogInformation("Executing database query");
+                ConvertedDocument doc = _db.Select<ConvertedDocument>(sql, parameters);
+                _log.LogInformation($"Query executed, document: {(doc != null ? "not null" : "null")}");
+                
+                string fileName = doc?.file_name;
+                _log.LogInformation($"Filename retrieved: {fileName ?? "null"}");
+                
+                string result = !string.IsNullOrEmpty(fileName) ? 
+                    Path.GetFileNameWithoutExtension(fileName) : 
+                    parentDocumentId;
+                _log.LogInformation($"Returning filename: {result}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, $"Error getting parent document filename: {ex.Message}");
+                _log.LogError($"Stack trace: {ex.StackTrace}");
+                return parentDocumentId;
+            }
         }
     }
 }

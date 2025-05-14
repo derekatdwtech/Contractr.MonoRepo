@@ -1,5 +1,5 @@
 USER:="sa"
-PASSWORD:="MyC0m9l&xP@ssw0rd"
+PASSWORD:="MyP@ssw0rd!"
 
 docker-context:
 	kubectl config use-context docker-desktop
@@ -19,7 +19,7 @@ seed-database:
 	sqlcmd -S 127.0.0.1,1433 -d contractr -i Test/seed_data.sql -U ${USER} -P ${PASSWORD}
 
 migrate-local:
-	flyway migrate -user=${USER} -password=${PASSWORD} -url='jdbc:sqlserver://localhost:1433;databaseName=contractr' -locations=filesystem:Migrations/ -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
+	flyway migrate -user=${USER} -password=${PASSWORD} -url='jdbc:sqlserver://localhost:1433;databaseName=contractr;encrypt=true;trustServerCertificate=true' -locations=filesystem:Migrations/ -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
 
 clean:
-	flyway migrate -user=${USER} -password=${PASSWORD} -url='jdbc:sqlserver://localhost:1433;databaseName=contractr' -locations=filesystem:Migrations/ -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
+	flyway migrate -user=${USER} -password=${PASSWORD} -url='jdbc:sqlserver://localhost:1433;databaseName=contractr;encrypt=true;trustServerCertificate=true' -locations=filesystem:Migrations/ -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'

@@ -7,10 +7,9 @@ import AppTextField from "../../components/input/AppTextField";
 import { H6 } from "../../components/Typography";
 import { useContext, useState } from "react"; // custom styled components
 import { useFetch } from "../../hooks/useFetch";
-import { OrganizationContext } from "../../context/OrganizationContext";
 import { config } from "../../config";
 import { Form } from "react-router-dom";
-
+import { useUserOrg } from "../../context/UserOrgContext";
 const StyledAppModal = styled(AppModal)(({ theme }) => ({
   minWidth: 400,
   [theme.breakpoints.down(400)]: {
@@ -21,7 +20,7 @@ const StyledAppModal = styled(AppModal)(({ theme }) => ({
 // -------------------------------------------------------------------
 const CreateProject = ({ open, setOpen, onCreateCallBack }) => {
   const { post } = useFetch();
-  const { organization } = useContext(OrganizationContext);
+  const { organization } = useUserOrg();
   const [formData, setFormData] = useState({
     start_date: new Date(Date.now()).toLocaleDateString(),
     close_date: new Date(Date.now()).toLocaleDateString(),

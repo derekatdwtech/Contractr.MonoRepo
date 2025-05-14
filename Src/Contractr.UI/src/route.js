@@ -19,6 +19,7 @@ const Account = Loadable(lazy(() => import("./pages/account")));
 const Deals = Loadable(lazy(() => import("./pages/deals")));
 const DealDetails = Loadable(lazy(() => import("./pages/deals/DealDetails")));
 const Org = Loadable(lazy(() => import("./pages/org")));
+const ProvisionLibrary = Loadable(lazy(() => import("./pages/provisionlibrary")));
 const routes = () => {
   return [
     {
@@ -53,6 +54,10 @@ const authRoutes = [
   {
     path: "/account",
     element: <ProtectedRoute component={Account} />
+  },
+  {
+    path:"/library",
+    element: <ProtectedRoute component={ProvisionLibrary} />
   }
 ];
 

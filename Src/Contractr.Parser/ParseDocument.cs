@@ -38,11 +38,11 @@ namespace Contractr.Parser
                 string dealId = uriSegments[1];
                 string documentId = uriSegments[2];
                 string fileName = uriSegments[3];
-                string signaturePageDirectory = $"{TEMP_PATH}/{document.id}/signature_pages";
+                string signaturePageDirectory = $"{TEMP_PATH}/{documentId}/signature_pages";
 
                 try
                 {
-                    CreateDirectoryIfNotExists($"{TEMP_PATH}/{document.id}");
+                    CreateDirectoryIfNotExists($"{TEMP_PATH}/{documentId}");
                     CreateDirectoryIfNotExists(signaturePageDirectory);
                 }
                 catch (Exception e)
@@ -51,8 +51,8 @@ namespace Contractr.Parser
                     Environment.Exit(1);
                 }
 
-                await _blob.DownloadAsync(container, $"{dealId}/{documentId}/{fileName}", $"{TEMP_PATH}/{document.id}").ConfigureAwait(false);
-                FileInfo file = new DirectoryInfo($"{TEMP_PATH}/{document.id}").GetFiles()[0];
+                await _blob.DownloadAsync(container, $"{dealId}/{documentId}/{fileName}", $"{TEMP_PATH}/{documentId}").ConfigureAwait(false);
+                FileInfo file = new DirectoryInfo($"{TEMP_PATH}/{documentId}").GetFiles()[0];
 
                 try
                 {
@@ -63,7 +63,7 @@ namespace Contractr.Parser
                         _log.LogInformation($"Found {pages.Count} signature page(s).");
                         foreach (var page in pages)
                         {
-                            var blob = await _blob.UploadFileFromPath(container, page.FullName, $"{dealId}/{document.id}/signature_pages/{page.Name}");
+                            var blob = await _blob.UploadFileFromPath(container, page.FullName, $"{dealId}/{documentId}/signature_pages/{page.Name}");
                             SignaturePage sDoc = new SignaturePage()
                             {
                                 parent_document = document.id,
@@ -86,12 +86,13 @@ namespace Contractr.Parser
                     }
                     else
                     {
-                        _log.LogWarning($"No signature pages were found in document {fileName}. DocumentId: {document.id}.");
+                        _log.LogWarning($"No signature pages were found in document {fileName}. DocumentId: {documentId}.");
                     }
 
                 }
                 catch (Exception e)
                 {
+                    _log.LogError("", e);
 
                 }
             }

@@ -33,7 +33,18 @@ const DocumentTableListItem = ({ document }) => {
   const handleClose = () => setDocumentEl(null);
 
   useEffect(() => {
-    
+    async function getSignaturePagesForDocument(id) {
+      get(`${config.API_URL}/Document/${id}/signature_pages`, null, true)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          setPages(pages.concat(data));
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+    getSignaturePagesForDocument(document.id);
   }, [document]);
 
   return (
@@ -53,12 +64,12 @@ const DocumentTableListItem = ({ document }) => {
             </FlexBox>
           </Box>
         </FlexBox>
-        <StyledSmall variant="primary">{document.signaturePages.length}  Signature Pages</StyledSmall>
+        <StyledSmall variant="primary">{pages.length}  Signature Pages</StyledSmall>
         <IconButton onClick={(e) => handleMoreDocumentClick(e)}>
           <MoreHoriz fontSize="small" color="disabled" />
         </IconButton>
       </FlexBetween>
-      <MoreDocumentOptions anchorEl={documentEl} handleMoreClose={handleClose} pages={pages} parent_document={document.id} />
+      <MoreDocumentOptions anchorEl={documentEl} handleMoreClose={handleClose} pages={pages} parent_document={document.id} file_name={document.file_name} />
     </Grid>
   );
 };

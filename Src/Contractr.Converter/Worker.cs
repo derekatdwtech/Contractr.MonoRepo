@@ -56,7 +56,7 @@ namespace Contractr.Converter
                     CreateDirectoryIfNotExists(documentId);
 
                     var originalDocument = await DownloadOriginalDocument(container, $"{dealId}/{documentId}/{fileName}", documentId);
-
+                
                     if (!String.IsNullOrEmpty(originalDocument.Name))
                     {
                         // STATUS: Received Document
@@ -81,20 +81,30 @@ namespace Contractr.Converter
             }
         }
 
-        private async Task<FileInfo> DownloadOriginalDocument(string container, string remoteFilePath, string localFilePath)
+        private async Task<FileInfo?> DownloadOriginalDocument(string container, string remoteFilePath, string localFilePath)
         {
             try
             {
-                _log.LogInformation($"Downloading original document from {container}/{remoteFilePath}");
-                await _blob.DownloadAsync(container, remoteFilePath, localFilePath);
-                FileInfo[] files = new DirectoryInfo(localFilePath).GetFiles();
-                return files[0];
-
+                // Unescape the remote path once at the start
+                string unescapedRemotePath = Uri.UnescapeDataString(remoteFilePath);
+                _log.LogInformation($"Downloading original document from {container}/{unescapedRemotePath}");
+                
+                await _blob.DownloadAsync(container, unescapedRemotePath, localFilePath);
+                
+                // The downloaded file will have the same name as the remote file
+                string downloadedFilePath = Path.Combine(localFilePath, Path.GetFileName(unescapedRemotePath));
+                
+                if (!File.Exists(downloadedFilePath))
+                {
+                    return null;
+                }
+                
+                return new FileInfo(downloadedFilePath);
             }
             catch (Exception ex)
             {
                 _log.LogError($"Failed to download file from remote source. {ex.Message}");
-                throw new FileNotFoundException(ex.StackTrace);
+                return null;
             }
         }
 

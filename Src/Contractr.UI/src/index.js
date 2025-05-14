@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { UserOrgProvider } from "./context/UserOrgContext";
 import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import Auth0ProviderWithHistory from "./auth/Auth0ProviderWithHistory";
@@ -12,7 +13,9 @@ root.render(
     <SettingsProvider>
       <BrowserRouter>
         <Auth0ProviderWithHistory>
-          <App />
+          <UserOrgProvider>
+            <App />
+          </UserOrgProvider>
         </Auth0ProviderWithHistory>
       </BrowserRouter>
     </SettingsProvider>

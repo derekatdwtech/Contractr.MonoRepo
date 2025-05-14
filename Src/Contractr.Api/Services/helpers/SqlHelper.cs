@@ -105,10 +105,10 @@ namespace Contractr.Api.Services
             {
                 if (p.Name != "PageSize" && p.Name != "PageNumber" && !String.IsNullOrWhiteSpace(p.Name))
                 {
-                    _log.LogInformation("Processing Dynamic Parameters for key {p}", p.Name.ToString());
+                    _log.LogDebug("Processing Dynamic Parameters for key {p}", p.Name.ToString());
                     var value = p.GetValue(obj);
                     param.Add($"@{p.Name}", value.ToString());
-                    _log.LogInformation("Successfully wrote Dynamic Parameters with value of {v}", value.ToString());
+                    _log.LogDebug("Successfully wrote Dynamic Parameters with value of {v}", value.ToString());
                 }
 
             }

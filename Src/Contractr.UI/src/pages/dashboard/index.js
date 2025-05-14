@@ -2,12 +2,13 @@ import LayoutBodyWrapper from "../../components/layout/LayoutBodyWrapper";
 import { Fragment, useContext, useEffect, useState } from "react";
 import DashboardHeader from "./components/DashboardHeader";
 import DashboardSidebar from "./components/DashboardSidebar";
-import { OrganizationContext } from "../../context/OrganizationContext";
 import ProfileSetup from "../new_account/profile_setup";
 import { Outlet } from "react-router-dom";
+import { useUserOrg } from "../../context/UserOrgContext";
+
 
 const DashboardLayout = ({ children }) => {
-  const { organization } = useContext(OrganizationContext);
+  const { userProfile, organization, loading } = useUserOrg();
   const [sidebarCompact, setSidebarCompact] = useState(false);
   const [showMobileSideBar, setShowMobileSideBar] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
@@ -22,7 +23,7 @@ const DashboardLayout = ({ children }) => {
   };
 
   useEffect(() => {
-    if(organization.id == undefined) {
+    if(organization === null) {
         setShowProfileSetup(true);
     }
   }, [organization]);

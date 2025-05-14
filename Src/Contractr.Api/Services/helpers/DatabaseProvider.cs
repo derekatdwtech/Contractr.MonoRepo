@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using Contractr.Entities.Config;
 using Dapper;
@@ -53,9 +53,13 @@ namespace Contractr.Api.Services
             }
         }
 
-        public T Update<T>(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text)
+        public int Update(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text)
         {
-            throw new NotImplementedException();
+            using (var _db = this.GetDbConnection())
+            {
+                return _db.Execute(sql, dParams, commandType: commandType);
+
+            }
         }
     }
 }

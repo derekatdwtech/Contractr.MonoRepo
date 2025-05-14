@@ -11,6 +11,7 @@ using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
 using UglyToad.PdfPig.Writer;
+using System.Linq;
 
 namespace Contractr.Parser.Services
 {
@@ -66,51 +67,79 @@ namespace Contractr.Parser.Services
                     string pdfExt = Path.GetExtension(outputFileName);
                     string modifiedFileName = Path.GetFileNameWithoutExtension(outputFileName) + "_page_" + pageIdx + pdfExt;
 
-                    foreach (Word pdfWord in page.GetWords())
+                    bool isSignaturePage = false;
+                    List<string> detectedNames = new();
+
+                    // Detect signature page
+                    foreach (var signatureKey in searchKeys)
                     {
-                        foreach (var signatureKey in searchKeys)
+                        if (signatureKey.isSignature)
                         {
-                            if (pdfWord.Text.Contains(signatureKey.key))
+                            if (page.Text.Contains(signatureKey.key, StringComparison.OrdinalIgnoreCase))
                             {
-                                if (signatureKey.isSignature)
-                                {
-                                    var wordCoords = pdfWord.BoundingBox;
-                                    if (!coordSets.Contains(wordCoords))
-                                    {
-                                        coordSets.Add(wordCoords);
-                                    }
-
-                                    if (!listSignaturePages.Contains(pageIdx))
-                                    {
-                                        _log.LogInformation($"Signature marker found on page: {pageIdx}. Processing...");
-                                        listSignaturePages.Add(pageIdx);
-                                        PdfDocumentBuilder pdfBuilder = new PdfDocumentBuilder();
-                                        PdfPageBuilder pdfPage = pdfBuilder.AddPage(pageSize);
-                                        pdfPage.CopyFrom(page);
-                                        byte[] pdfBytes = pdfBuilder.Build();
-
-                                        File.WriteAllBytes($"{outputDirectory}/{modifiedFileName}", pdfBytes);
-                                        _log.LogInformation($"File Saved: {outputDirectory}/{modifiedFileName}");
-                                    }
-                                }
-                                else if (signatureKey.isNameField)
-                                {
-                                    var potentialName = page.Text;
-                                    _log.LogDebug($"Parsing Text -------------- {potentialName}");
-                                    var regexStr = $"(?<= {signatureKey.key}\\s)\\b([A-Z]{{1}}[a-z]+) ([A-Z]{{1}}[a-z]+)\\b";
-                                    _log.LogDebug($"Matching with regex pattern: {regexStr}");
-
-                                    Regex re = new Regex(regexStr);
-                                    MatchCollection names = re.Matches(potentialName);
-                                    
-                                    _log.LogInformation($"Found {names.Count} names. in text {potentialName}");
-                                    foreach(Match name in names) {
-                                        _log.LogInformation($"{name.Value}");
-                                    }
-                                }
+                                isSignaturePage = true;
+                                break;
                             }
                         }
                     }
+
+                    if (isSignaturePage)
+                    {
+                        // Run name detection only if signature page
+                        foreach (var signatureKey in searchKeys)
+                        {
+                            if (page.Text.Contains(signatureKey.key, StringComparison.OrdinalIgnoreCase) && signatureKey.isNameField)
+                            {
+
+                                _log.LogDebug($"Checking for names using key: {signatureKey.key}");
+                                _log.LogDebug($"Page text: {page.Text}");
+                                var regexStr = $"(?<={signatureKey.key}\\s*)\\b([A-Z]{{1}}[a-z]+)\\s+([A-Z]{{1}}[a-z]+)\\b";
+                                Regex re = new Regex(regexStr, RegexOptions.IgnoreCase);
+                                MatchCollection names = re.Matches(page.Text);
+                                foreach (Match name in names)
+                                {
+                                    _log.LogDebug($"Found name: {name.Value}");
+                                    detectedNames.Add(name.Value.Replace(" ", "_"));
+                                }
+                            }
+                        }
+
+                        if (detectedNames.Count > 0)
+                        {
+                            foreach (var name in detectedNames)
+                            {
+                                string nameFile = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(outputFileName)}_page_{page.Number}_{name}{pdfExt}");
+                                _log.LogInformation($"Signature marker found on page: {page.Number}. Processing...");
+                                listSignaturePages.Add(page.Number);
+                                PdfDocumentBuilder pdfBuilder = new PdfDocumentBuilder();
+                                PdfPageBuilder pdfPage = pdfBuilder.AddPage(pageSize);
+                                pdfPage.CopyFrom(page);
+                                byte[] pdfBytes = pdfBuilder.Build();
+
+                                File.WriteAllBytes(nameFile, pdfBytes);
+                                _log.LogInformation($"File Saved: {nameFile}");
+                                signaturePages.Add(new FileInfo(nameFile));
+                                _log.LogInformation($"Generated signature page for {name} on page {page.Number}.");
+                            }
+                        }
+                        else
+                        {
+                            // No names found, just save the signature page as before
+                            string sigPageFile = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(outputFileName)}_page_{page.Number}{pdfExt}");
+                            _log.LogInformation($"Signature marker found on page: {page.Number}. Processing...");
+                            listSignaturePages.Add(page.Number);
+                            PdfDocumentBuilder pdfBuilder = new PdfDocumentBuilder();
+                            PdfPageBuilder pdfPage = pdfBuilder.AddPage(pageSize);
+                            pdfPage.CopyFrom(page);
+                            byte[] pdfBytes = pdfBuilder.Build();
+
+                            File.WriteAllBytes(sigPageFile, pdfBytes);
+                            _log.LogInformation($"File Saved: {sigPageFile}");
+                            signaturePages.Add(new FileInfo(sigPageFile));
+                            _log.LogInformation($"Generated signature page (no name detected) for page {page.Number}.");
+                        }
+                    }
+
                     // process signature fields...
                     int signatureFieldIdx = 1;
                     foreach (var coordSet in coordSets)

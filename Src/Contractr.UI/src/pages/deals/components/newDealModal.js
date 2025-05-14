@@ -8,11 +8,11 @@ import { useFetch } from "../../../hooks/useFetch";
 import Input from "../../../components/input";
 import DatePicker from "../../../components/input/datepicker";
 import Select from "../../../components/input/select";
-import { OrganizationContext } from "../../../context/OrganizationContext";
+import { useUserOrg } from "../../../context/UserOrgContext";
 
 const NewDealModal = ({ isShowing, toggle, onCreateCallBack }) => {
   const { post } = useFetch();
-  const { organization } = useContext(OrganizationContext);
+  const { organization } = useUserOrg(); 
   const [formData, setFormData] = useState({
     start_date: new Date(Date.now()).toLocaleDateString(),
     close_date: new Date(Date.now()).toLocaleDateString(),

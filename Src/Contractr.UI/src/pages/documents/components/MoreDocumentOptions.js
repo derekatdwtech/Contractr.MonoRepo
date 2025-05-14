@@ -5,7 +5,7 @@ import { Small } from "../../../components/Typography"; // component props inter
 import { useFetch } from "../../../hooks/useFetch";
 import { config } from "../../../config";
 
-const MoreDocumentOptions = ({ anchorEl, handleMoreClose, pages, parent_document }) => {
+const MoreDocumentOptions = ({ anchorEl, handleMoreClose, pages, parent_document, file_name }) => {
   const { get } = useFetch();
   const downloadSignatureDocuments = () => {
     get(`${config.API_URL}/Document/${parent_document}/signature_pages/download`, null, true)
@@ -14,7 +14,7 @@ const MoreDocumentOptions = ({ anchorEl, handleMoreClose, pages, parent_document
         const url = window.URL.createObjectURL(new Blob([blob]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `${parent_document}_signature_pages.zip`);
+        link.setAttribute('download', `${file_name}_signature_pages.zip`);
         // 3. Append to html page
         document.body.appendChild(link);
         // 4. Force download

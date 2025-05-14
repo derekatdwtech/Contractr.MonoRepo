@@ -63,7 +63,7 @@ namespace Contractr.Converter
                     });
                 }
                 config.AddEnvironmentVariables();
-                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+                config.AddJsonFile("local.settings.json", optional: true, reloadOnChange: false);
 
 
             })

@@ -43,8 +43,11 @@ namespace Contractr.Parser.Services
 
             try
             {
+                // Unescape the blob filename
+                string unescapedBlobFilename = Uri.UnescapeDataString(blobFilename);
+                
                 // Get a reference to the blob uploaded earlier from the API in the container from configuration settings
-                BlobClient file = client.GetBlobClient(blobFilename);
+                BlobClient file = client.GetBlobClient(unescapedBlobFilename);
 
                 // Check if the file exists in the container
                 if (await file.ExistsAsync())
@@ -53,7 +56,9 @@ namespace Contractr.Parser.Services
                     var data = await file.OpenReadAsync();
                     Stream blobContent = data;
 
-                    using (var fileStream = File.OpenWrite($"{outputDirectory}/{blobFilename.Split('/')[2]}"))
+                    // Unescape the filename for local storage as well
+                    string localFileName = Uri.UnescapeDataString(blobFilename.Split('/')[2]);
+                    using (var fileStream = File.OpenWrite($"{outputDirectory}/{localFileName}"))
                     {
                         // Download the file details async
                         var content = await file.DownloadToAsync(fileStream);

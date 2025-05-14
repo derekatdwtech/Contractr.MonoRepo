@@ -6,7 +6,7 @@ using Dapper;
 
 namespace Contractr.Parser.Services
 {
-    public interface IDatabaseProvider : IDisposable
+    public interface IDatabaseProvider
     {
         DbConnection GetDbConnection();
 
@@ -17,6 +17,6 @@ namespace Contractr.Parser.Services
 
         int Insert(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text);
 
-        T Update<T>(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text);
+        // T Update<T>(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text);
     }
 }

@@ -7,7 +7,7 @@ import AppTextField from "../input/AppTextField";
 import { H6 } from "../Typography";
 import { useContext, useState } from "react"; // custom styled components
 import { useFetch } from "../../hooks/useFetch";
-import { OrganizationContext } from "../../context/OrganizationContext";
+import { useUserOrg } from "../../context/UserOrgContext";
 import { config } from "../../config";
 import { useAuth0 } from "@auth0/auth0-react";
 
@@ -21,7 +21,7 @@ const StyledAppModal = styled(AppModal)(({ theme }) => ({
 // -------------------------------------------------------------------
 const UploadDocumentModal = ({ open, setOpen, id, onUploadCallback }) => {
   const { post } = useFetch();
-  const { organization } = useContext(OrganizationContext);
+  const { organization } = useUserOrg();
   const { user } = useAuth0();
   const [error, setError] = useState();
   const [selectedFile, setSelectedFile] = useState();

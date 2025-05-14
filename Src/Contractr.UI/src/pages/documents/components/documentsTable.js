@@ -61,7 +61,7 @@ const DocumentsTable = (props) => {
       {documents.length < 1 && (
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <i>No documents have been uploaded for this deal.</i>
+            <H6 mt={2}>No documents have been uploaded for this deal.</H6>
           </Grid>
         </Grid>
       )}

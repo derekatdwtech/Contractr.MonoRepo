@@ -3,17 +3,20 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Contractr.Converter.Config;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace Contractr.Converter.Services
 {
     public class BlobStorage : IBlobStorage
     {
+        private readonly ILogger<BlobStorage> _log;
 
         private IOptions<BlobStorageConfiguration> Options {get;}
 
-        public BlobStorage(IOptions<BlobStorageConfiguration> options)
+        public BlobStorage(IOptions<BlobStorageConfiguration> options, ILogger<BlobStorage> log)
         {
             Options = options;
+            _log = log;
         }
 
         private BlobServiceClient GetBlobClient()
@@ -42,25 +45,22 @@ namespace Contractr.Converter.Services
                 // Check if the file exists in the container
                 if (await file.ExistsAsync())
                 {
-                    Console.WriteLine($" ....... Downloading file {file.Name}");
-                    var data = await file.OpenReadAsync();
-                    Stream blobContent = data;
+                    _log.LogInformation($"Downloading file {file.Name}");
+                    
+                    // The filename is already unescaped in the Worker, so we can use it directly
+                    string outputPath = Path.Combine(outputDirectory, Path.GetFileName(blobFilename));
 
-                    using (var fileStream = File.OpenWrite($"{outputDirectory}/{blobFilename.Split('/')[2]}"))
+                    using (var fileStream = File.OpenWrite(outputPath))
                     {
-                        // Download the file details async
-                        var content = await file.DownloadToAsync(fileStream);
+                        await file.DownloadToAsync(fileStream);
                     }
                 }
             }
             catch (RequestFailedException ex)
                 when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
             {
-                // Log error to console
-                Console.WriteLine($" ....... File {blobFilename} was not found.");
+                _log.LogError($"File {blobFilename} was not found.");
             }
-            // File does not exist, return null and handle that in requesting method
-            return;
         }
 
         private async Task<BlobContainerClient> GetContainerClient(string containerName)

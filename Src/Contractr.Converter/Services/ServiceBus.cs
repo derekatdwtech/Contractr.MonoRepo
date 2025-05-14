@@ -11,7 +11,7 @@ namespace Contractr.Converter.Services
         private ILogger<ServiceBus> _log;
         private const string STATUS_UPDATE_QUEUE = "status.update.q";
         private const string DOCUMENT_CONVERSION_QUEUE = "document.conversion.q";
-                private const string DOCUMENT_PARSE_QUEUE = "document.parse.q";
+        private const string DOCUMENT_PARSE_QUEUE = "document.parse.q";
 
 
         public ServiceBus(IOptions<ServiceBusConfiguration> options, ILogger<ServiceBus> log)

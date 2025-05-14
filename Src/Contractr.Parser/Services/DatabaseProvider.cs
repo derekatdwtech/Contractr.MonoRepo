@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -51,14 +51,11 @@ namespace Contractr.Parser.Services
             }
         }
 
-        public T Update<T>(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text)
-        {
-            throw new NotImplementedException();
-        }
+        // public T Update<T>(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text)
+        // {
+        //     // Do nothing
+            
+        // }
 
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

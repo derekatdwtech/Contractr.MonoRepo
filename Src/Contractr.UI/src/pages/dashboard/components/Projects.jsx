@@ -1,20 +1,21 @@
 import { Box, Button, Grid } from "@mui/material";
-import { H4, H5 } from "../../../components/Typography";
+import { H5 } from "../../../components/Typography";
 import React, { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectCard from "../../../components/cards/ProjectCard";
-import { OrganizationContext } from "../../../context/OrganizationContext";
 import { useFetch } from "../../../hooks/useFetch";
 import { config } from "../../../config";
+import { useUserOrg } from "../../../context/UserOrgContext";
 
 const Projects = () => {
   const { t } = useTranslation();
   const [deals, setDeals] = useState([]);
-  const { organization } = useContext(OrganizationContext);
+  const { organization } = useUserOrg();
   const { get } = useFetch();
 
   useEffect(() => {
-    get(`${config.API_URL}/deal?organization=${organization.id}`, null, true)
+    if(organization) {
+      get(`${config.API_URL}/deal?organization=${organization.id}`, null, true)
       .then((res) => {
         if (res.status === 200) {
           return res.json();
@@ -30,7 +31,9 @@ const Projects = () => {
       .catch((err) => {
         console.error(err);
       });
-  }, [organization.id]);
+    }
+    
+  }, [organization]);
 
   return (
     <Box pt={3} pb={5} px={3}>
@@ -43,11 +46,6 @@ const Projects = () => {
               <ProjectCard deal={item} />
             </Grid>
           ))}
-        {deals.length < 1 && (
-          <Grid item xs={12} sm={6} lg={4}>
-            <H4>No deals are in progress.</H4>
-          </Grid>
-        )}
       </Grid>
 
       <Button
@@ -61,7 +59,7 @@ const Projects = () => {
           padding: "0.5rem 3rem",
         }}
       >
-        {deals.length > 0 && t("Load More")}
+        {t("Load More")}
       </Button>
     </Box>
   );

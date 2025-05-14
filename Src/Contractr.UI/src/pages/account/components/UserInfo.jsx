@@ -24,10 +24,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as Yup from "yup";
 import { StyledBadge, StyledChip, StyledInput } from "./StyledComponent";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useUserOrg } from "../../../context/UserOrgContext";
 
 const UserInfo = () => {
-  const { user } = useAuth0();
+  const { userProfile } = useUserOrg();
   const { t } = useTranslation();
   const [value, setValue] = useState([tagList[0]]);
   const initialValues = {
@@ -103,7 +103,7 @@ const UserInfo = () => {
             >
               <AppAvatar
                 alt="Travis Howard"
-                src={user?.picture || "/static/avatar/001-man.svg"}
+                src={userProfile && userProfile?.picture || "/static/avatar/001-man.svg"}
                 sx={{
                   width: 90,
                   height: 90,
@@ -111,7 +111,7 @@ const UserInfo = () => {
               />
             </StyledBadge>
             <Box ml="1rem">
-              <H5>{`${user?.profile.first_name} ${user?.profile.last_name}`}</H5>
+              <H5>{`${userProfile && userProfile?.first_name} ${userProfile && userProfile?.last_name}`}</H5>
               <Tiny color="text.primary">Senior Associate</Tiny>
             </Box>
           </FlexBox>
@@ -147,7 +147,7 @@ const UserInfo = () => {
               fullWidth
               name="first_name"
               label="First Name"
-              value={user.profile.first_name}
+              value={userProfile && userProfile?.first_name}
               onChange={handleChange}
               helperText={touched.firstName && errors.firstName}
               error={Boolean(touched.firstName && errors.firstName)}
@@ -158,7 +158,7 @@ const UserInfo = () => {
               fullWidth
               name="last_name"
               label="Last Name"
-              value={user.profile.last_name}
+              value={userProfile && userProfile?.last_name}
               onChange={handleChange}
               helperText={touched.lastName && errors.lastName}
               error={Boolean(touched.lastName && errors.lastName)}
@@ -169,7 +169,7 @@ const UserInfo = () => {
               fullWidth
               name="jobTitle"
               label="Job Title"
-              value={values.jobTitle}
+              value={userProfile && userProfile?.job_title}
               onChange={handleChange}
               helperText={touched.jobTitle && errors.jobTitle}
               error={Boolean(touched.jobTitle && errors.jobTitle)}
@@ -180,7 +180,7 @@ const UserInfo = () => {
               fullWidth
               name="location"
               label="Location"
-              value={values.location}
+              value={userProfile && userProfile?.location}
               onChange={handleChange}
               helperText={touched.location && errors.location}
               error={Boolean(touched.location && errors.location)}
@@ -192,7 +192,7 @@ const UserInfo = () => {
               multiline
               rows={10}
               name="bio"
-              value={values.bio}
+              value={userProfile && userProfile?.bio}
               onChange={handleChange}
               label="About you / Bio"
               helperText={touched.bio && errors.bio}

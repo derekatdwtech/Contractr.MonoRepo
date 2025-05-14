@@ -26,13 +26,13 @@ public class UserController : ControllerBase
     {
         string owner = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault()?.Value;
         User user = _service.GetUserById(owner);
-        if (user != null)
+        if (user == null || user.id == "")
         {
-            return Ok(user);
+            return NotFound("User profile was not found. Please setup your profile to continue.");
         }
         else
         {
-            return NotFound("User profile was not found. Please setup your profile to continue.");
+            return Ok(user);
         }
 
     }
@@ -44,6 +44,22 @@ public class UserController : ControllerBase
         {
 
             User result = _service.AddUser(user);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPut("")]
+    public IActionResult UpdateUser(User user)
+    {
+        try
+        {
+
+            User result = _service.UpdateUser(user);
             return Ok(result);
         }
         catch (Exception ex)

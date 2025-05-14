@@ -7,6 +7,14 @@ namespace Contractr.Parser.Models
         public SignatureKeys()
         {
             SearchKeys = new List<SearchKey>() {
+                new SearchKey() {
+                    key = "Signature Page",
+                    isSignature = true
+                },
+                new SearchKey() {
+                    key = "In Witness Whereof",
+                    isSignature = true
+                },
                 new SearchKey () {
                     key = "BUYER:",
                     isSignature = false
@@ -26,11 +34,13 @@ namespace Contractr.Parser.Models
                 },
                 new SearchKey() {
                     key ="[Name]",
-                    isSignature = false
+                    isSignature = false,
+                    isNameField = true
                 },
                 new SearchKey () {
                     key = "[Title]",
-                    isSignature = false
+                    isSignature = false,
+                    isNameField = true
                 }
             };
         }

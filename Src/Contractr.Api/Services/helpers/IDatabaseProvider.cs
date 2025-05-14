@@ -15,6 +15,6 @@ namespace Contractr.Api.Services {
 
         int Insert(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text);
 
-        T Update<T>(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text);
+        int Update(string sql, DynamicParameters dParams, CommandType commandType = CommandType.Text);
     }
 }

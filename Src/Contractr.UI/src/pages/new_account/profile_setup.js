@@ -1,4 +1,3 @@
-import { useAuth0 } from "@auth0/auth0-react";
 import { Box, Button, Card, Divider, Grid, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
@@ -8,18 +7,19 @@ import { H2, H3 } from "../../components/Typography";
 import { useFetch } from "../../hooks/useFetch";
 import { config } from "../../config";
 import toast from "react-hot-toast";
+import { useUserOrg } from "../../context/UserOrgContext";
 
 const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
-  const { user } = useAuth0();
+  const { userProfile, auth0User } = useUserOrg();
   const { t } = useTranslation();
-  const { post } = useFetch();
+  const { post, put } = useFetch();
   const [userInformation, setUserInformation] = useState({
-    email: user.email,
-    id: user.sub,
+    email: auth0User.email,
+    id: auth0User.sub,
     is_active: true,
   });
   const [organizationInformation, setOrganizationInformation] = useState({
-    owner: user.sub,
+    owner: userProfile.sub,
   });
 
   const [saveButtonDisabled, setSaveButtonDisabled] = useState(false);
@@ -38,30 +38,30 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
     }));
   };
 
-  const saveProfileInformation = () => {
+  const saveProfileInformation = async () => {
     setSaveButtonDisabled(true);
-    if (user.profile.id != undefined) {
-      post(`${config.API_URL}/User`, userInformation, true)
+    if (!userProfile.id) {
+      await post(`${config.API_URL}/User`, userInformation, true)
         .then((r) => {
           if (r.ok) {
-            console.log("Successfully created user.");
+            console.log("Successfully updated userProfile.");
             return r.json();
           } else {
             setSaveButtonDisabled(false);
-            throw new ErrorEvent("Failed to create user");
+            throw new ErrorEvent("Failed to update user");
           }
         })
         .then((data) => {
-          user.profile = data;
+          userProfile = data;
         })
         .catch((err) => {
           setSaveButtonDisabled(false);
-          toast.error("Failed to add user", err);
+          toast.error("Failed to update user", err);
         });
     }
 
     console.log("Creating Organization");
-    post(`${config.API_URL}/organization`, organizationInformation, true)
+    await post(`${config.API_URL}/Organization`, organizationInformation, true)
       .then((res) => {
         if (res.ok) {
           onCreateCallback(!isProfileSetupShowing);
@@ -77,76 +77,68 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
     <Box pt={2} pb={4}>
       <Grid container spacing={3}>
         <Grid item lg={12} md={12} sm={12} xs={12}>
-          <Card
-            sx={{
-              padding: 3,
-            }}
-          >
-            <Grid item xs={12} pb={2}>
-              <H2> Welcome to Contractr!</H2>
-              <Typography>
-                We show you're new here. To continue, please fill out your
-                profile information and create your organization to begin.
-              </Typography>
-            </Grid>
-            <Divider></Divider>
-            <Grid container spacing={3} pt={2}>
-              {user.profile.id === undefined && (
-                <div>
+          <Card sx={{ padding: 4 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <H2>Welcome to Contractr!</H2>
+                <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                  We show you're new here. To continue, please fill out your
+                  profile information and create your organization to begin.
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+              </Grid>
+
+              {userProfile.id === undefined && (
+                <>
                   <Grid item xs={12}>
                     <H3>User Information</H3>
                   </Grid>
-                  <Grid item xs={7}>
-                    <Box py={1}>
-                      <AppTextField
-                        label="First Name"
-                        fullWidth
-                        type="text"
-                        name="first_name"
-                        required
-                        onChange={(e) => handleUserInformationChange(e)}
-                      />
-                    </Box>
-                    <Box py={1}>
-                      <AppTextField
-                        label="Last Name"
-                        fullWidth
-                        type="text"
-                        name="last_name"
-                        required
-                        onChange={(e) => handleUserInformationChange(e)}
-                      />
-                    </Box>
-                    <Box py={1}>
-                      <AppTextField
-                        fullWidth
-                        type="email"
-                        name="email"
-                        value={user.email}
-                        disabled
-                        onChange={(e) => handleUserInformationChange(e)}
-                      />
-                    </Box>
+                  
+                  <Grid item xs={12} md={7}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <AppTextField
+                          label="First Name"
+                          fullWidth
+                          type="text"
+                          name="first_name"
+                          required
+                          onChange={(e) => handleUserInformationChange(e)}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <AppTextField
+                          label="Last Name"
+                          fullWidth
+                          type="text"
+                          name="last_name"
+                          required
+                          onChange={(e) => handleUserInformationChange(e)}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <AppTextField
+                          fullWidth
+                          type="email"
+                          name="email"
+                          value={auth0User.email}
+                          disabled
+                          onChange={(e) => handleUserInformationChange(e)}
+                        />
+                      </Grid>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={5}>
-                    <img
-                      alt=""
-                      src="/static/illustration/crm-lead.svg"
-                      style={{
-                        padding: 30,
-                        display: "block",
-                        marginLeft: "auto",
-                      }}
-                    />
-                  </Grid>
-                </div>
+
+                </>
               )}
 
-              <Divider />
               <Grid item xs={12}>
                 <H3>Organization Information</H3>
               </Grid>
-              <Grid item md={12} xs={12}>
+              <Grid item xs={12} md={6}>
                 <AppTextField
                   label="Organization Name"
                   fullWidth
@@ -155,7 +147,19 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
                   onChange={(e) => handleOrgInformationChange(e)}
                 />
               </Grid>
-              <Grid item md={6} xs={12}>
+
+              <Grid item xs={12} md={6}>
+                <AppTextField
+                  label="Phone Number"
+                  fullWidth
+                  type="tel"
+                  name="phone"
+                  required
+                  onChange={(e) => handleOrgInformationChange(e)}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
                 <AppTextField
                   label="Address"
                   fullWidth
@@ -164,7 +168,8 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
                   onChange={(e) => handleOrgInformationChange(e)}
                 />
               </Grid>
-              <Grid item md={6} xs={12}>
+
+              <Grid item xs={12} md={6}>
                 <AppTextField
                   label="Town/City"
                   fullWidth
@@ -173,7 +178,8 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
                   onChange={(e) => handleOrgInformationChange(e)}
                 />
               </Grid>
-              <Grid item md={6} xs={12}>
+
+              <Grid item xs={12} md={6}>
                 <AppTextField
                   label="State"
                   fullWidth
@@ -183,7 +189,8 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
                   onChange={(e) => handleOrgInformationChange(e)}
                 />
               </Grid>
-              <Grid item md={6} xs={12}>
+
+              <Grid item xs={12} md={6}>
                 <AppTextField
                   label="Country"
                   fullWidth
@@ -193,39 +200,31 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
                   onChange={(e) => handleOrgInformationChange(e)}
                 />
               </Grid>
-              <Grid item md={6} xs={12}>
+
+              <Grid item xs={12} md={6}>
                 <AppTextField
                   label="Zip Code"
                   fullWidth
-                  type="number"
+                  type="text"
                   name="zip"
                   required
                   onChange={(e) => handleOrgInformationChange(e)}
                 />
               </Grid>
-              <Grid item md={6} xs={12}>
-                <AppTextField
-                  label="Phone Number"
-                  fullWidth
-                  type="number"
-                  name="Phone Number"
-                  required
-                  onChange={(e) => handleOrgInformationChange(e)}
-                />
-              </Grid>
-              <Grid item md={12} xs={12}>
+
+              <Grid item xs={12} sx={{ mt: 4 }}>
                 <Button
                   variant="contained"
-                  sx={{
-                    margin: "auto",
-                    marginTop: 4,
-                    fontWeight: 500,
-                    display: "block",
-                    textAlign: "center",
-                    padding: "0.5rem 3rem",
-                  }}
+                  size="large"
+                  fullWidth
                   onClick={() => saveProfileInformation()}
                   disabled={saveButtonDisabled}
+                  sx={{
+                    py: 1.5,
+                    maxWidth: '400px',
+                    margin: '0 auto',
+                    display: 'block'
+                  }}
                 >
                   {t("Save")}
                 </Button>

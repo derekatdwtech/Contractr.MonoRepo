@@ -5,7 +5,7 @@ import TableBody from "../../../components/table/components/TableBody";
 import TableRow from "../../../components/table/components/TableRow";
 import TableColumn from "../../../components/table/components/TableColumn";
 import { config } from "../../../config";
-import { OrganizationContext } from "../../../context/OrganizationContext";
+import { useUserOrg } from "../../../context/UserOrgContext";
 import { useFetch } from "../../../helpers/useFetch";
 
 const PendingDealsTable = (props) => {
@@ -17,7 +17,7 @@ const PendingDealsTable = (props) => {
     "View",
   ];
   const { deals, setDeals } = props;
-  const { organization } = useContext(OrganizationContext);
+  const { organization } = useUserOrg(); 
   const { get } = useFetch();
 
   useEffect(() => {
