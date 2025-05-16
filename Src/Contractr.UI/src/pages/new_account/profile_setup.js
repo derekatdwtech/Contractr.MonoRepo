@@ -1,4 +1,4 @@
-import { Box, Button, Card, Divider, Grid, Typography } from "@mui/material";
+import { Box, Button, Card, Divider, Grid, Typography, CircularProgress } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import AppTextField from "../../components/input/AppTextField";
@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import { useUserOrg } from "../../context/UserOrgContext";
 
 const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
-  const { userProfile, auth0User } = useUserOrg();
+  const { userProfile, auth0User, refreshUserOrgData } = useUserOrg();
   const { t } = useTranslation();
   const { post, put } = useFetch();
   const [userInformation, setUserInformation] = useState({
@@ -23,6 +23,7 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
   });
 
   const [saveButtonDisabled, setSaveButtonDisabled] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleUserInformationChange = (e) => {
     setUserInformation((prevState) => ({
@@ -38,41 +39,40 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
     }));
   };
 
-  const saveProfileInformation = async () => {
+  const handleSave = async () => {
+    setIsSaving(true);
     setSaveButtonDisabled(true);
-    if (!userProfile.id) {
-      await post(`${config.API_URL}/User`, userInformation, true)
-        .then((r) => {
-          if (r.ok) {
-            console.log("Successfully updated userProfile.");
-            return r.json();
-          } else {
-            setSaveButtonDisabled(false);
-            throw new ErrorEvent("Failed to update user");
-          }
-        })
-        .then((data) => {
-          userProfile = data;
-        })
-        .catch((err) => {
-          setSaveButtonDisabled(false);
-          toast.error("Failed to update user", err);
-        });
-    }
-
-    console.log("Creating Organization");
-    await post(`${config.API_URL}/Organization`, organizationInformation, true)
-      .then((res) => {
-        if (res.ok) {
-          onCreateCallback(!isProfileSetupShowing);
+    
+    try {
+      if (!userProfile.id) {
+        const userRes = await post(`${config.API_URL}/User`, userInformation, true);
+        if (!userRes.ok) {
+          throw new Error("Failed to update user");
         }
-      })
-      .catch((e) => {
-        console.error(e);
-        setSaveButtonDisabled(false);
-        toast.error("Failed to create organization", e);
-      });
+      }
+
+      const orgRes = await post(`${config.API_URL}/Organization`, organizationInformation, true);
+      if (!orgRes.ok) {
+        throw new Error("Failed to create organization");
+      }
+
+      // Refresh the context data
+      await refreshUserOrgData();
+      
+      // Close the profile setup
+      onCreateCallback(!isProfileSetupShowing);
+      
+      // Show success message
+      toast.success(t("Profile saved successfully"));
+    } catch (error) {
+      console.error(error);
+      toast.error(t("Failed to save profile. Please try again."));
+    } finally {
+      setIsSaving(false);
+      setSaveButtonDisabled(false);
+    }
   };
+
   return (
     <Box pt={2} pb={4}>
       <Grid container spacing={3}>
@@ -217,8 +217,8 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
                   variant="contained"
                   size="large"
                   fullWidth
-                  onClick={() => saveProfileInformation()}
-                  disabled={saveButtonDisabled}
+                  onClick={handleSave}
+                  disabled={saveButtonDisabled || isSaving}
                   sx={{
                     py: 1.5,
                     maxWidth: '400px',
@@ -226,7 +226,11 @@ const ProfileSetup = ({ onCreateCallback, isProfileSetupShowing }) => {
                     display: 'block'
                   }}
                 >
-                  {t("Save")}
+                  {isSaving ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    t("Save")
+                  )}
                 </Button>
               </Grid>
             </Grid>

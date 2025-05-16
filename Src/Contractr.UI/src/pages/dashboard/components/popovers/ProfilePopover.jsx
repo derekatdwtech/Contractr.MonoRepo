@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import PopoverLayout from "./PopoverLayout"; // styled components
 import { useAuth0 } from "@auth0/auth0-react";
-import {useEffect} from 'react';
+import { useUserOrg } from "../../../../context/UserOrgContext";
 
 const StyledButtonBase = styled(ButtonBase)(({ theme }) => ({
   padding: 5,
@@ -36,7 +36,8 @@ const StyledSmall = styled(Small)(({ theme }) => ({
 const ProfilePopover = () => {
   const anchorRef = useRef(null);
   const navigate = useNavigate();
-  const { logout, user } = useAuth0();
+  const { logout } = useAuth0();
+  const { userProfile, auth0User, refreshUserOrgData } = useUserOrg();
   const [open, setOpen] = useState(false);
   const upSm = useMediaQuery((theme) => theme.breakpoints.up("sm"));
 
@@ -50,11 +51,10 @@ const ProfilePopover = () => {
     navigate("/");
   };
 
-  useEffect(() => {
+  const fullName = userProfile.first_name && userProfile.last_name 
+    ? `${userProfile.first_name} ${userProfile.last_name}`
+    : auth0User?.email || 'User';
 
-  }, [user]);
-
-  let fullName = user.profile != undefined ? `${user.profile.first_name} ${user.profile.last_name}` : user.email;
   return (
     
     <Fragment>
@@ -86,12 +86,12 @@ const ProfilePopover = () => {
             <Small mx={1} color="text.secondary">
               Hi,{" "}
               <Small fontWeight="600" display="inline">
-                {fullName}
+                {fullName || auth0User?.email}
               </Small>
             </Small>
           )}
           <AppAvatar
-            src={user?.picture || "/static/avatar/001-man.svg"}
+            src={userProfile?.picture || auth0User?.picture || "/static/avatar/001-man.svg"}
             sx={{
               width: 28,
               height: 28,

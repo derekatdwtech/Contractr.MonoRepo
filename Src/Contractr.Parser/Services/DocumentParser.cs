@@ -46,11 +46,7 @@ namespace Contractr.Parser.Services
         private List<FileInfo> FindAndCreateSignaturePages(string filePath, string outputDirectory)
         {
             List<SearchKey> searchKeys = new SignatureKeys().SearchKeys;
-            // load pdf and identify signature page
-            List<int> listSignaturePages = new();
-            // List Of Files to return
             List<FileInfo> signaturePages = new();
-
             string outputFileName = Path.GetFileName(filePath);
             _log.LogInformation($"Opening pdf file for parsing: {filePath}");
 
@@ -67,30 +63,29 @@ namespace Contractr.Parser.Services
                     string pdfExt = Path.GetExtension(outputFileName);
                     string modifiedFileName = Path.GetFileNameWithoutExtension(outputFileName) + "_page_" + pageIdx + pdfExt;
 
-                    bool isSignaturePage = false;
+                    bool hasSignatureKey = false;
+                    bool hasNameField = false;
                     List<string> detectedNames = new();
 
-                    // Detect signature page
+                    // First check for signature keys
                     foreach (var signatureKey in searchKeys)
                     {
-                        if (signatureKey.isSignature)
+                        if (signatureKey.isSignature && page.Text.Contains(signatureKey.key, StringComparison.OrdinalIgnoreCase))
                         {
-                            if (page.Text.Contains(signatureKey.key, StringComparison.OrdinalIgnoreCase))
-                            {
-                                isSignaturePage = true;
-                                break;
-                            }
+                            hasSignatureKey = true;
+                            break;
                         }
                     }
 
-                    if (isSignaturePage)
+                    // Only proceed with name detection if we found a signature key
+                    if (hasSignatureKey)
                     {
-                        // Run name detection only if signature page
+                        // Check for name fields
                         foreach (var signatureKey in searchKeys)
                         {
-                            if (page.Text.Contains(signatureKey.key, StringComparison.OrdinalIgnoreCase) && signatureKey.isNameField)
+                            if (signatureKey.isNameField && page.Text.Contains(signatureKey.key, StringComparison.OrdinalIgnoreCase))
                             {
-
+                                hasNameField = true;
                                 _log.LogDebug($"Checking for names using key: {signatureKey.key}");
                                 _log.LogDebug($"Page text: {page.Text}");
                                 var regexStr = $"(?<={signatureKey.key}\\s*)\\b([A-Z]{{1}}[a-z]+)\\s+([A-Z]{{1}}[a-z]+)\\b";
@@ -104,13 +99,13 @@ namespace Contractr.Parser.Services
                             }
                         }
 
-                        if (detectedNames.Count > 0)
+                        // Only process as signature page if we have both a signature key and at least one name
+                        if (hasNameField && detectedNames.Count > 0)
                         {
                             foreach (var name in detectedNames)
                             {
                                 string nameFile = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(outputFileName)}_page_{page.Number}_{name}{pdfExt}");
-                                _log.LogInformation($"Signature marker found on page: {page.Number}. Processing...");
-                                listSignaturePages.Add(page.Number);
+                                _log.LogInformation($"Signature marker and name found on page: {page.Number}. Processing...");
                                 PdfDocumentBuilder pdfBuilder = new PdfDocumentBuilder();
                                 PdfPageBuilder pdfPage = pdfBuilder.AddPage(pageSize);
                                 pdfPage.CopyFrom(page);
@@ -124,45 +119,8 @@ namespace Contractr.Parser.Services
                         }
                         else
                         {
-                            // No names found, just save the signature page as before
-                            string sigPageFile = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(outputFileName)}_page_{page.Number}{pdfExt}");
-                            _log.LogInformation($"Signature marker found on page: {page.Number}. Processing...");
-                            listSignaturePages.Add(page.Number);
-                            PdfDocumentBuilder pdfBuilder = new PdfDocumentBuilder();
-                            PdfPageBuilder pdfPage = pdfBuilder.AddPage(pageSize);
-                            pdfPage.CopyFrom(page);
-                            byte[] pdfBytes = pdfBuilder.Build();
-
-                            File.WriteAllBytes(sigPageFile, pdfBytes);
-                            _log.LogInformation($"File Saved: {sigPageFile}");
-                            signaturePages.Add(new FileInfo(sigPageFile));
-                            _log.LogInformation($"Generated signature page (no name detected) for page {page.Number}.");
+                            _log.LogDebug($"Page {page.Number} has signature key but no valid name field found. Skipping.");
                         }
-                    }
-
-                    // process signature fields...
-                    int signatureFieldIdx = 1;
-                    foreach (var coordSet in coordSets)
-                    {
-                        PdfSharpCore.Drawing.XPoint xp1 = new();
-                        PdfSharpCore.Drawing.XPoint xp2 = new();
-
-                        xp1 = new PdfSharpCore.Drawing.XPoint(coordSet.BottomLeft.X + 40, coordSet.BottomLeft.Y);
-                        xp2 = new PdfSharpCore.Drawing.XPoint(coordSet.TopRight.X + 100, coordSet.TopRight.Y + 5);
-
-                        string sigFileName = Path.GetFileNameWithoutExtension(modifiedFileName) + $"_sig{signatureFieldIdx}" + Path.GetExtension(modifiedFileName);
-
-                        PdfSharpCore.Pdf.PdfDocument sigBlockDoc = PdfReader.Open(outputDirectory + "/" + modifiedFileName);
-                        var sigFile = new Contractr.Parser.Models.PdfSignatureField(sigBlockDoc,
-                            new PdfSharpCore.Pdf.PdfRectangle(xp1, xp2)
-                            );
-
-                        sigBlockDoc.Pages[0].Annotations.Add(sigFile);
-
-                        _log.LogInformation($"Saving signature file {outputDirectory}/{sigFileName}");
-                        sigBlockDoc.Save($"{outputDirectory}/{sigFileName}");
-                        signaturePages.Add(new FileInfo($"{outputDirectory}/{sigFileName}"));
-                        signatureFieldIdx++;
                     }
 
                     pageIdx++;

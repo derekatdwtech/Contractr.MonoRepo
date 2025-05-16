@@ -6,9 +6,9 @@ trigger:
       - feature/*
   
 pool:
-  vmImage: "windows-latest"
+  vmImage: "ubuntu-latest"
 variables:
-  dotnetVersion: '6.x'
+  dotnetVersion: '8.x'
   projects: '*.csproj'
   artifactName: 'Contractr.Parser'
   serviceConnection: DWTECH
@@ -103,5 +103,5 @@ stages:
           inputs:
             azureSubscription: $(serviceConnection)
             appType: 'functionapp'
-            appName: ctr-fn-parser-use2-dev
+            appName: ctr-fa-parser-use2-dev
             package: '$(Build.SourcesDirectory)/bin/**/*.zip'

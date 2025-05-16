@@ -6,7 +6,7 @@ trigger:
       - feature/*
   
 pool:
-  vmImage: "windows-latest"
+  vmImage: "ubuntu-latest"
 variables:
   dotnetVersion: '6.x'
   projects: '*.csproj'

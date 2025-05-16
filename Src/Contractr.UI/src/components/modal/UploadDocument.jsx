@@ -1,6 +1,6 @@
 import { Add } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers";
-import { Avatar, Box, Button, Stack, styled } from "@mui/material";
+import { Avatar, Box, Button, Stack, styled, CircularProgress } from "@mui/material";
 import AppModal from "./AppModal";
 import FlexBox from "../flexbox/FlexBox";
 import AppTextField from "../input/AppTextField";
@@ -25,9 +25,16 @@ const UploadDocumentModal = ({ open, setOpen, id, onUploadCallback }) => {
   const { user } = useAuth0();
   const [error, setError] = useState();
   const [selectedFile, setSelectedFile] = useState();
+  const [isUploading, setIsUploading] = useState(false);
 
   const onSubmit = () => {
+    if (!selectedFile) {
+      setError("Please select a file to upload");
+      return;
+    }
+
     setError(null);
+    setIsUploading(true);
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -38,35 +45,39 @@ const UploadDocumentModal = ({ open, setOpen, id, onUploadCallback }) => {
       null
     )
       .then((res) => {
-       if(res.ok) {
-        return res.json();
-       }
-       else {
-        return res.text();
-       }
+        if(res.ok) {
+          return res.json();
+        }
+        else {
+          return res.text();
+        }
       })
       .then((data) => {
         if(data.blob_uri !== undefined) {
-            onUploadCallback(data);
-            setOpen(!open);
+          onUploadCallback(data);
+          setOpen(!open);
         }
         else {
-            console.log(data)
-            setError(data);
+          console.log(data);
+          setError(data);
         }
       })
       .catch((err) => {
         console.error(err);
+        setError("Failed to upload document. Please try again.");
+      })
+      .finally(() => {
+        setIsUploading(false);
       });
   };
 
   const onInputChange = (e) => {
+    setError(null);
     setSelectedFile(e.target.files[0]);
   };
 
   return (
     <StyledAppModal open={open} handleClose={() => setOpen(false)}>
-      
       <Box mb={2}>
         <H6 mb={1}>Description</H6>
         <AppTextField
@@ -77,15 +88,31 @@ const UploadDocumentModal = ({ open, setOpen, id, onUploadCallback }) => {
           placeholder="Select Document"
           type="file"
           onChange={(e) => onInputChange(e)}
+          error={!!error}
+          helperText={error}
         />
       </Box>
       
       <FlexBox mt={4} gap={2}>
-        <Button variant="contained" fullWidth onClick={()=> onSubmit()}>
-          Upload
+        <Button 
+          variant="contained" 
+          fullWidth 
+          onClick={()=> onSubmit()}
+          disabled={isUploading || !selectedFile}
+        >
+          {isUploading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            "Upload"
+          )}
         </Button>
 
-        <Button variant="outlined" fullWidth onClick={() => setOpen(false)}>
+        <Button 
+          variant="outlined" 
+          fullWidth 
+          onClick={() => setOpen(false)}
+          disabled={isUploading}
+        >
           Cancel
         </Button>
       </FlexBox>

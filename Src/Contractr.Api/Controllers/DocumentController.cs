@@ -79,7 +79,7 @@ public class DocumentController : ControllerBase
             }
             else
             {
-                return NoContent();
+                return Ok(new List<SignaturePage>());
             }
         }
         catch (Exception e)
