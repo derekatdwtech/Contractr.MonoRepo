@@ -1,6 +1,6 @@
 mode: ContinuousDelivery
 increment: Minor
-assembly-informational-format: 'db-{SemVer}'
+assembly-informational-format: 'parser-{SemVer}'
 branches:
   master:
     increment: Minor

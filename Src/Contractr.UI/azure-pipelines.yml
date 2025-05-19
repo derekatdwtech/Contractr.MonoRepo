@@ -6,10 +6,15 @@ trigger:
       - master
       - feature/*
 
+  paths:
+    include:
+      - Src/Contractr.UI/**
+
 variables:
   artifactName: 'Contractr.Ui'
-  nodeVersion: '16.x'
+  nodeVersion: '22.x'
   serviceConnection: DWTECH
+  workingdir: '$(Build.SourcesDirectory)/Src/Contractr.UI'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -38,22 +43,25 @@ stages:
             versionSpec: '$(nodeVersion)'
           
         - script: |
+            cd $(workingdir)
             npm ci
           displayName: 'NPM Install'
         
         - script: |
+            cd $(workingdir)
             npm run test:ci
           displayName: Run Unit Tests
           continueOnError: true
 
         - script: |
+            cd $(workingdir)
             npm run build
           displayName: Build React App
           
         - task: CopyFiles@2
           displayName: Copy files to artifact directory
           inputs:
-            sourceFolder: './build' 
+            sourceFolder: '$(workingdir)/build' 
             Contents: '**/*'
             TargetFolder: '$(Build.ArtifactStagingDirectory)'
             cleanTargetFolder: true

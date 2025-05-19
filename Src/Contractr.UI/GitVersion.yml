@@ -1,6 +1,6 @@
 mode: ContinuousDelivery
 increment: Patch
-assembly-informational-format: 'api-{SemVer}'
+assembly-informational-format: 'ui-{SemVer}'
 branches: {}
 ignore:
   sha: [] 

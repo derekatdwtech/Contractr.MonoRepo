@@ -4,6 +4,9 @@ trigger:
     include:
       - master
       - feature/*
+  paths:
+    include:
+      - Src/Contractr.Api/**
   
 pool:
   vmImage: "ubuntu-latest"
