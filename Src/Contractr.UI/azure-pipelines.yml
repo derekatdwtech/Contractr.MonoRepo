@@ -121,32 +121,44 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
+                # Create and navigate to working directory
                 cd $(Build.SourcesDirectory)/bin
                 echo "Current directory: $(pwd)"
-                echo "Contents of current directory:"
+                
+                # Create clean extraction directory
+                mkdir -p extracted
+                echo "Extracting to clean directory"
+                unzip -o $(artifactName).zip -d extracted
+                
+                # Navigate to extracted directory
+                cd extracted
+                echo "Contents of extracted directory:"
                 ls -la
-                echo "Unzipping $(artifactName).zip"
-                unzip -o $(artifactName).zip
-                echo "Contents after unzip:"
-                ls -la
-                echo "*********************************************************************************************************"
-                echo "Source directory contents:"
-                ls -la $(Build.SourcesDirectory)/Src/Contractr.UI/
+                
+                # Copy and update env config
                 echo "Copying env-config.deploy.js to env-config.js"
                 cp $(Build.SourcesDirectory)/Src/Contractr.UI/env-config.deploy.js env-config.js
                 echo "Contents after copy:"
                 ls -la
-                echo "*********************************************************************************************************"
+                
+                # Update environment variables
                 echo "Updating env-config.js"
                 sed -i 's|#{API_URL}#|$(CTR_API_URL)|g' env-config.js
                 sed -i 's|#{NOTIFICATION_API_URL}#|$(CTR_NOTIFICATION_API_URL)|g' env-config.js
                 sed -i 's|#{AUTH0_CLIENT_ID}#|$(CTR_AUTH0_CLIENT_ID)|g' env-config.js
                 sed -i 's|#{AUTH0_DOMAIN}#|$(CTR_AUTH0_DOMAIN)|g' env-config.js
                 sed -i 's|#{AUTH0_AUDIENCE}#|$(CTR_AUTH0_AUDIENCE)|g' env-config.js
-                echo "Contents before zip:"
-                ls -la
+                
+                # Create new deployment zip
+                echo "Creating deployment zip"
                 zip -r ../$(artifactName)-deploy.zip .
+                
+                # Clean up
                 cd ..
+                echo "Cleaning up extraction directory"
+                rm -rf extracted
+                
+                # Verify final zip
                 echo "Final zip contents:"
                 unzip -l $(artifactName)-deploy.zip
 
