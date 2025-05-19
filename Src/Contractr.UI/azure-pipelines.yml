@@ -122,11 +122,20 @@ stages:
               targetType: 'inline'
               script: |
                 cd $(Build.SourcesDirectory)/bin
+                echo "Current directory: $(pwd)"
+                echo "Contents of current directory:"
+                ls -la
+                echo "Unzipping $(artifactName).zip"
                 unzip -o $(artifactName).zip
+                echo "Contents after unzip:"
+                ls -la
                 echo "*********************************************************************************************************"
+                echo "Source directory contents:"
                 ls -la $(Build.SourcesDirectory)/Src/Contractr.UI/
                 echo "Copying env-config.deploy.js to env-config.js"
                 cp $(Build.SourcesDirectory)/Src/Contractr.UI/env-config.deploy.js env-config.js
+                echo "Contents after copy:"
+                ls -la
                 echo "*********************************************************************************************************"
                 echo "Updating env-config.js"
                 sed -i 's|#{API_URL}#|$(CTR_API_URL)|g' env-config.js
@@ -134,9 +143,12 @@ stages:
                 sed -i 's|#{AUTH0_CLIENT_ID}#|$(CTR_AUTH0_CLIENT_ID)|g' env-config.js
                 sed -i 's|#{AUTH0_DOMAIN}#|$(CTR_AUTH0_DOMAIN)|g' env-config.js
                 sed -i 's|#{AUTH0_AUDIENCE}#|$(CTR_AUTH0_AUDIENCE)|g' env-config.js
-                zip -r ../$(artifactName).zip .
+                echo "Contents before zip:"
+                ls -la
+                zip -r ../$(artifactName)-deploy.zip .
                 cd ..
-                rm -rf extracted
+                echo "Final zip contents:"
+                unzip -l $(artifactName)-deploy.zip
 
           - task: AzureWebApp@1
             displayName: Publish To App Service
@@ -144,5 +156,5 @@ stages:
               azureSubscription: $(serviceConnection)
               appType: 'webApp'
               appName: ctr-as-ctrui-use2-dev
-              package: '$(Build.SourcesDirectory)/bin/**/*.zip'
+              package: '$(Build.SourcesDirectory)/bin/$(artifactName)-deploy.zip'
         
