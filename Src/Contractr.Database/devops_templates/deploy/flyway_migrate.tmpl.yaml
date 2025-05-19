@@ -37,6 +37,6 @@ stages:
             flyWayVersion: ${{ parameters.flywayVersion }}
 
         - script: |
-            flyway migrate -user=$(Credentials--DatabaseUser) -password=$(Credentials--DatabasePassword) -configFile=$(Build.SourcesDirectory)/Src/Contractr.Database/flyway.conf -url='$(JDBC--CtrDatabaseUrl)' -locations=${{ parameters.migrationsDirectory }} -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
+            flyway migrate -user=$(Credentials--DatabaseUser) -password=$(Credentials--DatabasePassword) -configFiles=$(Build.SourcesDirectory)/Src/Contractr.Database/flyway.conf -url='$(JDBC--CtrDatabaseUrl)' -locations=${{ parameters.migrationsDirectory }} -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
           displayName: FlyWay Migrate
             
