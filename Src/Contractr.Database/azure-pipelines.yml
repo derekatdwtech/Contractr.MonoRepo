@@ -25,6 +25,16 @@ stages:
         #   parameters:
         #     flyWayVersion: $(flyWayVersion)
         #     migrationsDirectory: 'Migrations'
+        - task: Bash@3
+          displayName: 'Create Git Tag'
+          condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+          inputs:
+            targetType: 'inline'
+            script: |
+              git config --global user.email "azure-pipeline@example.com"
+              git config --global user.name "Azure Pipeline"
+              git tag -a "v$(GitVersion.AssemblySemVer)" -m "[skip ci] Release v$(GitVersion.AssemblySemVer)"
+              git push origin "v$(GitVersion.AssemblySemVer)"
 
   - template: devops_templates/deploy/flyway_migrate.tmpl.yaml
     parameters:

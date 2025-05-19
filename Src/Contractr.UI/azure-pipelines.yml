@@ -36,6 +36,8 @@ stages:
 
         - task: gitversion/execute@0
           displayName: Determine Version Number
+          inputs:
+            configFilePath: $(workingdir)/GitVersion.yml
 
         - task: NodeTool@0
           displayName: 'Install Node.js'
@@ -83,14 +85,16 @@ stages:
             targetPath: '$(Build.ArtifactStagingDirectory)'
           
           
-        - task: ATP.ATP-GitTag.GitTag.GitTag@7
-          displayName: 'Set Git Tag'
-          condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
+        - task: Bash@3
+          displayName: 'Create Git Tag'
+          condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
           inputs:
-            workingdir: '$(Build.SourcesDirectory)'
-            tag: v$(GitVersion.AssemblySemVer)
-            useLightweightTags: true
-            forceTagCreation: true
+            targetType: 'inline'
+            script: |
+              git config --global user.email "azure-pipeline@example.com"
+              git config --global user.name "Azure Pipeline"
+              git tag -a "v$(GitVersion.AssemblySemVer)" -m "[skip ci] Release v$(GitVersion.AssemblySemVer)"
+              git push origin "v$(GitVersion.AssemblySemVer)"
 
   - stage: Deploy_Dev
     displayName: Deploy to Dev
