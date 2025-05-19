@@ -107,6 +107,10 @@ stages:
     jobs:
       - job: Dev
         steps:
+          - checkout: self
+            persistCredentials: true
+            fetchDepth: 0
+
           - task: DownloadPipelineArtifact@2
             inputs:
               artifactName: '$(artifactName).zip'
@@ -119,7 +123,6 @@ stages:
               script: |
                 cd $(Build.SourcesDirectory)/bin
                 unzip -o $(artifactName).zip
-                cd build
                 cp ../../Src/Contractr.UI/env-config.deploy.js env-config.js
                 sed -i 's|#{API_URL}#|$(CTR_API_URL)|g' env-config.js
                 sed -i 's|#{NOTIFICATION_API_URL}#|$(CTR_NOTIFICATION_API_URL)|g' env-config.js
@@ -128,7 +131,7 @@ stages:
                 sed -i 's|#{AUTH0_AUDIENCE}#|$(CTR_AUTH0_AUDIENCE)|g' env-config.js
                 zip -r ../$(artifactName).zip .
                 cd ..
-                rm -rf build
+                rm -rf extracted
 
           - task: AzureWebApp@1
             displayName: Publish To App Service
