@@ -28,7 +28,7 @@ stages:
         - template: devops_templates/build/flyway.tmpl.yaml
           parameters:
             flyWayVersion: $(flyWayVersion)
-        
+            migrationsDirectory: 'Src/Contractr.Database/Migrations'
         # - template: devops_templates/build/flyway_test_mssql.tmpl.yaml
         #   parameters:
         #     flyWayVersion: $(flyWayVersion)
@@ -50,6 +50,6 @@ stages:
       env: Dev
       flyWayVersion: $(flyWayVersion)
       keyVaultName: 'ctr-kvctr-use2-dev'
-      migrationsDirectory: 'Migrations'
+      migrationsDirectory: 'Src/Contractr.Database/Migrations'
       previousStage: Build
       serviceConnection: $(serviceConnection)
