@@ -12,10 +12,25 @@ steps:
 - bash: |
     docker pull mcr.microsoft.com/mssql/server:${{ parameters.mssqlVersion }}
     docker run --name flyway-test -p 1433:1433 -e ACCEPT_EULA=\"Y\" -e SA_PASSWORD=FlYwAyT3St -d mcr.microsoft.com/mssql/server:${{ parameters.mssqlVersion }}
-    sleep 10
-    SQLCMD_PATH=$(docker exec flyway-test which sqlcmd)
-    echo "Found sqlcmd at: $SQLCMD_PATH"
-    docker exec flyway-test $SQLCMD_PATH -U sa -P FlYwAyT3St -d master -Q 'DROP DATABASE IF EXISTS flyway; CREATE DATABASE flyway;' 
+    
+    # Wait for SQL Server to be ready
+    echo "Waiting for SQL Server to be ready..."
+    for i in {1..30}; do
+      if docker exec flyway-test /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P FlYwAyT3St -Q "SELECT 1" &> /dev/null; then
+        echo "SQL Server is ready!"
+        break
+      fi
+      if [ $i -eq 30 ]; then
+        echo "SQL Server failed to start in time"
+        exit 1
+      fi
+      echo "Waiting... ($i/30)"
+      sleep 2
+    done
+    
+    # Create database
+    echo "Creating database..."
+    docker exec flyway-test /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P FlYwAyT3St -d master -Q 'DROP DATABASE IF EXISTS flyway; CREATE DATABASE flyway;'
   displayName: Prep local Database for Testing
 
 - bash: |
