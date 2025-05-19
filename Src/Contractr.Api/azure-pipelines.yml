@@ -9,7 +9,7 @@ pool:
   vmImage: "ubuntu-latest"
 variables:
   dotnetVersion: '8.x'
-  projects: '*.csproj'
+  projects: '**/*.csproj'
   artifactName: 'Contractr.Web'
   serviceConnection: DWTECH
   workingdir: './Src/Contractr.Api'
@@ -28,11 +28,13 @@ stages:
             inputs:
               versionSpec: '5.x'
               
-
           - task: gitversion/execute@0
             displayName: Determine Version Number
             inputs:
               configFilePath: $(workingdir)/GitVersion.yml
+          -
+           script: |
+              echo "$(pwd)"
 
           - task: DotNetCoreCLI@2
             displayName: Restore Packages
