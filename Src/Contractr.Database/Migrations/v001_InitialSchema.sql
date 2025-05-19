@@ -136,7 +136,7 @@ CREATE TABLE signed_documents
     deal_id VARCHAR(16) NOT NULL,
     blob_uri VARCHAR(MAX) NOT NULL,
     file_name VARCHAR(MAX) NOT NULL,
-    signed_by VARCHAR(100) NOT NULL,
+    signed_by VARCHAR(16) NOT NULL,
     CONSTRAINT fk_signature_documents_signed_doc FOREIGN KEY (parent_document) REFERENCES signature_documents(id),
     CONSTRAINT fk_signature_documents_digned_by FOREIGN KEY (signed_by) REFERENCES users(id)
 
