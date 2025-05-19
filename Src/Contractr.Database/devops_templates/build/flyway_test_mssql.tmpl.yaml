@@ -16,7 +16,7 @@ steps:
     # Wait for SQL Server to be ready
     echo "Waiting for SQL Server to be ready..."
     for i in {1..30}; do
-      if docker exec flyway-test /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P FlYwAyT3St -Q "SELECT 1" &> /dev/null; then
+      if docker exec flyway-test /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P FlYwAyT3St -Q "SELECT 1"; then
         echo "SQL Server is ready!"
         break
       fi
