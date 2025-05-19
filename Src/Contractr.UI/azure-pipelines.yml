@@ -15,6 +15,8 @@ variables:
   nodeVersion: '22.x'
   serviceConnection: DWTECH
   workingdir: '$(Build.SourcesDirectory)/Src/Contractr.UI'
+  - group: CTRDEV
+  
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -105,6 +107,24 @@ stages:
             inputs:
               artifactName: '$(artifactName).zip'
               targetPath: $(Build.SourcesDirectory)/bin
+
+          - task: Bash@3
+            displayName: 'Configure Environment Variables'
+            inputs:
+              targetType: 'inline'
+              script: |
+                cd $(Build.SourcesDirectory)/bin
+                unzip -o $(artifactName).zip
+                cd build
+                cp ../../Src/Contractr.UI/env-config.deploy.js env-config.js
+                sed -i 's|#{API_URL}#|$(CTR_API_URL)|g' env-config.js
+                sed -i 's|#{NOTIFICATION_API_URL}#|$(CTR_NOTIFICATION_API_URL)|g' env-config.js
+                sed -i 's|#{AUTH0_CLIENT_ID}#|$(CTR_AUTH0_CLIENT_ID)|g' env-config.js
+                sed -i 's|#{AUTH0_DOMAIN}#|$(CTR_AUTH0_DOMAIN)|g' env-config.js
+                sed -i 's|#{AUTH0_AUDIENCE}#|$(CTR_AUTH0_AUDIENCE)|g' env-config.js
+                zip -r ../$(artifactName).zip .
+                cd ..
+                rm -rf build
 
           - task: AzureWebApp@1
             displayName: Publish To App Service
