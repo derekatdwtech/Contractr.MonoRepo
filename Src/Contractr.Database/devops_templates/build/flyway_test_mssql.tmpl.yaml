@@ -1,4 +1,3 @@
-
 parameters:
 - name: flyWayVersion
   type: string
@@ -14,7 +13,9 @@ steps:
     docker pull mcr.microsoft.com/mssql/server:${{ parameters.mssqlVersion }}
     docker run --name flyway-test -p 1433:1433 -e ACCEPT_EULA=\"Y\" -e SA_PASSWORD=FlYwAyT3St -d mcr.microsoft.com/mssql/server:${{ parameters.mssqlVersion }}
     sleep 10
-    docker exec flyway-test sh -c "/opt/mssql-tools/bin/sqlcmd -U sa -P FlYwAyT3St -d master -Q 'DROP DATABASE IF EXISTS flyway; CREATE DATABASE flyway;'" 
+    SQLCMD_PATH=$(docker exec flyway-test which sqlcmd)
+    echo "Found sqlcmd at: $SQLCMD_PATH"
+    docker exec flyway-test $SQLCMD_PATH -U sa -P FlYwAyT3St -d master -Q 'DROP DATABASE IF EXISTS flyway; CREATE DATABASE flyway;' 
   displayName: Prep local Database for Testing
 
 - bash: |
