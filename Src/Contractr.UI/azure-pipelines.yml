@@ -11,10 +11,14 @@ trigger:
       - Src/Contractr.UI/**
 
 variables:
-  artifactName: 'Contractr.Ui'
-  nodeVersion: '22.x'
-  serviceConnection: DWTECH
-  workingdir: '$(Build.SourcesDirectory)/Src/Contractr.UI'
+  - name: artifactName
+    value: 'Contractr.Ui'
+  - name: nodeVersion
+    value: '22.x'
+  - name: serviceConnection
+    value: DWTECH
+  - name: workingdir
+    value: '$(Build.SourcesDirectory)/Src/Contractr.UI'
   - group: CTRDEV
   
 
