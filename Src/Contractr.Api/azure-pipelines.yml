@@ -34,7 +34,7 @@ stages:
               configFilePath: $(workingdir)/GitVersion.yml
           -
            script: |
-              echo "$(pwd)"
+              echo "$(ls -la)"
 
           - task: DotNetCoreCLI@2
             displayName: Restore Packages
