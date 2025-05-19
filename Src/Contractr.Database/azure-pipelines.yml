@@ -17,6 +17,14 @@ stages:
       - job: Build
         displayName: Build
         steps:
+        - checkout: self
+          persistCredentials: true
+          fetchDepth: 0
+
+        - task: gitversion/setup@0
+          displayName: Install GitVersion
+          inputs:
+            versionSpec: '5.x'
         - template: devops_templates/build/flyway.tmpl.yaml
           parameters:
             flyWayVersion: $(flyWayVersion)
