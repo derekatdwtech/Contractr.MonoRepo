@@ -12,7 +12,7 @@ variables:
   projects: '*.csproj'
   artifactName: 'Contractr.Web'
   serviceConnection: DWTECH
-  workingdir: 'Src\Contractr.Api'
+  workingdir: './Src/Contractr.Api'
 
 stages:
   - stage: Build
@@ -38,7 +38,7 @@ stages:
             displayName: Restore Packages
             inputs:
               command: 'restore'
-              projects: '$(workingdir)\$(projects)'
+              projects: '$(workingdir)/$(projects)'
               noCache: true
               verbosityRestore: 'quiet'
 
@@ -46,7 +46,7 @@ stages:
             displayName: Build Project
             inputs:
               command: 'build'
-              projects: '$(workingdir)\$(projects)'
+              projects: '$(workingdir)/$(projects)'
               arguments: >
                 --configuration Release
                 --no-restore
@@ -58,7 +58,7 @@ stages:
             condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
             inputs:
               command: publish
-              projects: '$(workingdir)\$(projects)'
+              projects: '$(workingdir)/$(projects)'
               publishWebProjects: false
               zipAfterPublish: true
               arguments: >
