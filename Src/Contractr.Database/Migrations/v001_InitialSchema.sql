@@ -1,9 +1,9 @@
 CREATE TABLE users
 (
-    id VARCHAR(100) NOT NULL PRIMARY KEY,
-    first_name VARCHAR(100) NULL,
-    last_name VARCHAR(100) NULL,
-    email VARCHAR(256) NOT NULL,
+    id VARCHAR(16) NOT NULL PRIMARY KEY,
+    first_name VARCHAR(50) NULL,
+    last_name VARCHAR(50) NULL,
+    email VARCHAR(254) NOT NULL,
     is_active BIT NOT NULL,
 );
 
@@ -12,12 +12,12 @@ CREATE TABLE organization
     id VARCHAR(16) NOT NULL PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
     address VARCHAR(MAX) NOT NULL,
-    city VARCHAR(200) NOT NULL,
-    state VARCHAR(200) NOT NULL,
-    country VARCHAR (200) NOT NULL,
-    owner VARCHAR(100) NOT NULL,
+    city VARCHAR(168) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    country VARCHAR (30) NOT NULL,
+    owner VARCHAR(16) NOT NULL,
     zip INT NOT NULL,
-    phone BIGINT NOT NULL,
+    phone VARCHAR(20) NOT NULL,
     parent_organization VARCHAR(16) NULL,
     CONSTRAINT fk_organizaion_owner_id FOREIGN KEY (owner) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -30,7 +30,7 @@ CREATE TABLE roles
 
 CREATE TABLE assigned_roles
 (
-    user_id VARCHAR(100) NOT NULL,
+    user_id VARCHAR(16) NOT NULL,
     member_of VARCHAR(16) NULL,
     role_id UNIQUEIDENTIFIER NOT NULL,
     CONSTRAINT fk_assigned_roles_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -61,17 +61,17 @@ CREATE TABLE deals
 CREATE TABLE deal_roles
 (
     deal_id VARCHAR(16) NOT NULL REFERENCES deals(id),
-    user_id VARCHAR(100) NOT NULL REFERENCES users(id)
+    user_id VARCHAR(16) NOT NULL REFERENCES users(id)
 );
 
 CREATE TABLE tasks (
     id VARCHAR(16) NOT NULL PRIMARY KEY,
     deal_id VARCHAR(16) NOT NULL REFERENCES deals(id),
     created_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(100) NOT NULL REFERENCES users(id),
+    created_by VARCHAR(16) NOT NULL REFERENCES users(id),
     title VARCHAR(200) NOT NULL,
     description VARCHAR(MAX) NULL,
-    assigned_to VARCHAR(100) NULL REFERENCES users(id),
+    assigned_to VARCHAR(16) NULL REFERENCES users(id),
     due_date DATETIME NULL,
     is_restricted BIT NOT NULL DEFAULT 0,
     status INT NOT NULL DEFAULT 1
@@ -86,12 +86,12 @@ CREATE TABLE task_history (
     task_id VARCHAR(16) NOT NULL REFERENCES tasks(id),
     action VARCHAR(100) NOT NULL,
     action_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    action_by VARCHAR(100) NOT NULL REFERENCES users(id)
+    action_by VARCHAR(16) NOT NULL REFERENCES users(id)
 )
 
 CREATE TABLE task_comments (
     task_id VARCHAR(16) REFERENCES tasks(id),
-    author VARCHAR(100) REFERENCES users(id),
+    author VARCHAR(16) REFERENCES users(id),
     body VARCHAR(MAX) NOT NULL,
     date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 )
