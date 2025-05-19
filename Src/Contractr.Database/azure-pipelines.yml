@@ -28,11 +28,12 @@ stages:
         - template: devops_templates/build/flyway.tmpl.yaml
           parameters:
             flyWayVersion: $(flyWayVersion)
-            migrationsDirectory: 'Src/Contractr.Database/Migrations'
-        # - template: devops_templates/build/flyway_test_mssql.tmpl.yaml
-        #   parameters:
-        #     flyWayVersion: $(flyWayVersion)
-        #     migrationsDirectory: 'Migrations'
+
+        - template: devops_templates/build/flyway_test_mssql.tmpl.yaml
+          parameters:
+            flyWayVersion: $(flyWayVersion)
+            migrationsDirectory: '$(Build.SourcesDirectory)/Src/Contractr.Database/Migrations'
+            
         - task: Bash@3
           displayName: 'Create Git Tag'
           condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))

@@ -18,5 +18,5 @@ steps:
   displayName: Prep local Database for Testing
 
 - bash: |
-    flyway migrate -user=sa -password=FlYwAyT3St -url='jdbc:sqlserver://localhost:1433;databaseName=flyway' -locations=filesystem:${{ parameters.migrationsDirectory }} -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
+    flyway migrate -user=sa -password=FlYwAyT3St -url='jdbc:sqlserver://localhost:1433;databaseName=flyway' -locations=filesystem:${{ parameters.migrationsDirectory }} -configFile=$(Build.SourcesDirectory)/Src/Contractr.Database/flyway.conf -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
   displayName: Test Migrations
