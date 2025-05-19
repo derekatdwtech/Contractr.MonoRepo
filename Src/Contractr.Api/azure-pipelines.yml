@@ -45,7 +45,7 @@ stages:
             displayName: Build Project
             inputs:
               command: 'build'
-              projects: '$(workingdir)/$(projects)'
+              projects: '$(workingdir)/*.csproj'
               arguments: >
                 --configuration Release
                 --no-restore
@@ -57,7 +57,7 @@ stages:
             condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
             inputs:
               command: publish
-              projects: '$(workingdir)/$(projects)'
+              projects: '$(workingdir)/*.csproj'
               publishWebProjects: false
               zipAfterPublish: true
               arguments: >
@@ -74,14 +74,16 @@ stages:
               artifactName: '$(artifactName)'
               targetPath: '$(Build.ArtifactStagingDirectory)'
           
-          - task: ATP.ATP-GitTag.GitTag.GitTag@7
-            displayName: 'Set Git Tag'
-            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master')) 
+          - task: Bash@3
+            displayName: 'Create Git Tag'
+            condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
             inputs:
-              workingdir: '$(Build.SourcesDirectory)'
-              tag: v$(GitVersion.AssemblySemVer)
-              useLightweightTags: true
-              forceTagCreation: true
+              targetType: 'inline'
+              script: |
+                git config --global user.email "azure-pipeline@example.com"
+                git config --global user.name "Azure Pipeline"
+                git tag -a "v$(GitVersion.AssemblySemVer)" -m "[skip ci] Release v$(GitVersion.AssemblySemVer)"
+                git push origin "v$(GitVersion.AssemblySemVer)"
 
   - stage: Deploy_Dev
     displayName: Deploy To Dev
