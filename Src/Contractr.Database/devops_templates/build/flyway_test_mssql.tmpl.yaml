@@ -16,7 +16,7 @@ steps:
     # Wait for SQL Server to be ready
     echo "Waiting for SQL Server to be ready..."
     for i in {1..30}; do
-      if docker exec flyway-test /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P FlYwAyT3St -Q "SELECT 1"; then
+      if docker exec flyway-test /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P FlYwAyT3St -Q "SELECT 1"; then
         echo "SQL Server is ready!"
         break
       fi
@@ -30,9 +30,9 @@ steps:
     
     # Create database
     echo "Creating database..."
-    docker exec flyway-test /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P FlYwAyT3St -d master -Q 'DROP DATABASE IF EXISTS flyway; CREATE DATABASE flyway;'
+    docker exec flyway-test /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P FlYwAyT3St -d master -Q 'DROP DATABASE IF EXISTS flyway; CREATE DATABASE flyway;'
   displayName: Prep local Database for Testing
 
 - bash: |
-    flyway migrate -user=sa -password=FlYwAyT3St -url='jdbc:sqlserver://localhost:1433;databaseName=flyway' -locations=filesystem:${{ parameters.migrationsDirectory }} -configFile=$(Build.SourcesDirectory)/Src/Contractr.Database/flyway.conf -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
+    flyway migrate -user=sa -password=FlYwAyT3St -url='jdbc:sqlserver://localhost:1433;databaseName=flyway;trustServerCertificate=true' -locations=filesystem:${{ parameters.migrationsDirectory }} -configFile=$(Build.SourcesDirectory)/Src/Contractr.Database/flyway.conf -driver='com.microsoft.sqlserver.jdbc.SQLServerDriver'
   displayName: Test Migrations
